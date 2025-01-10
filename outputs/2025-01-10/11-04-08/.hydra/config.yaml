@@ -1,0 +1,23 @@
+seed: 42
+model:
+  model_name: roberta-base
+  dropout: 0.3
+  num_classes: 2
+optimizer:
+  type: Adam
+  lr: 2.0e-05
+data: '...'
+training:
+  batch_size: 16
+  max_epochs: 10
+  save_top_k: 3
+  early_stopping: true
+  patience: 3
+  accelerator: auto
+  devices: 1
+  gradient_clip_val: 1.0
+  accumulate_grad_batches: 1
+logging:
+  use_wandb: false
+  project_name: text-detect
+  run_name: roberta-base-run
