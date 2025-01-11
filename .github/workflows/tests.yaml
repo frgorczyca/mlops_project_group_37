@@ -36,5 +36,9 @@ jobs:
 
       - name: Run tests & coverage
         run: |
-          PYTHONPATH=src coverage run -m pytest tests/
-          coverage report -m
+          if [ $RUNNER_OS == 'Windows' ]; then
+                set PYTHONPATH=src && coverage run -m pytest tests/
+                else
+                PYTHONPATH=src coverage run -m pytest tests/
+                fi
+                coverage report -m
