@@ -30,4 +30,4 @@ def preprocess(raw_data_path: Path, output_folder: Path) -> None:
 
 if __name__ == "__main__":
     #typer.run(preprocess)
-    dataset = MyDataset("data")
+    dataset = MyDataset("data/raw")
