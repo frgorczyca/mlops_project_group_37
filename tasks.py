@@ -29,6 +29,11 @@ def dev_requirements(ctx: Context) -> None:
     """Install development requirements."""
     ctx.run('pip install -e .["dev"]', echo=True, pty=not WINDOWS)
 
+@task
+def download_data(ctx: Context) -> None:
+    """Download data from Kaggle."""
+    ctx.run("sh downloadKaggleDataset.sh", echo=True, pty=not WINDOWS)
+
 # Project commands
 @task
 def preprocess_data(ctx: Context) -> None:
