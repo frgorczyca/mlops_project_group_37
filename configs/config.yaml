@@ -5,7 +5,7 @@ seed: 42
 
 # Model configuration
 model:
-  model_name: "roberta-base"
+  model_name: "albert/albert-base-v2" # types: "albert-base-v2"
   dropout: 0.3
   num_classes: 2
 
@@ -21,19 +21,19 @@ data:
 
 # Training configuration
 training:
-  batch_size: 16 # Currently unused
-  max_epochs: 10 # Currently unused
+  output_dir: "models"
+  batch_size: 16
+  max_epochs: 10
   precision: "16-mixed"  # Currently unused # for mixed precision training
-  # num_workers: 4 # Currently unused
-  # output_dir: "outputs" # Currently unused
-  save_top_k: 3 # Currently unused
-  early_stopping: true # Currently unused
-  patience: 3 # Currently unused
-  accelerator: "auto"  # "cpu", "gpu", "auto" # Currently unused
-  devices: 1 # Currently unused
+  num_workers:
+  # Callbacks
+  save_checkpoints: false
+  save_top_k: 3
+  early_stopping: true
+  patience: 3 # Early stopping patience
 
 # Logging configuration
 logging:
   use_wandb: false  # Set to true to enable Weights & Biases logging
   project_name: "text-detect"
-  run_name: "roberta-base-run"
+  run_name: "test-run"

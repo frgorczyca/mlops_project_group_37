@@ -2,10 +2,10 @@ import torch
 import hydra
 from torch import nn
 import pytorch_lightning as pl
-from transformers import RobertaModel, RobertaTokenizer
+
+from transformers import AutoModel, AutoTokenizer
 from torch.optim import Adam, AdamW, SGD
 from torchmetrics import Accuracy
-from typing import Dict, Any
 
 
 class LLMDetector(pl.LightningModule):
@@ -13,17 +13,20 @@ class LLMDetector(pl.LightningModule):
     PyTorch Lightning version of LLM Detector.
     """
 
-    def __init__(self, cfg: Dict[str, Any]):
+    def __init__(self, cfg):
         super().__init__()
 
         # Save hyperparameters to the checkpoint
         self.save_hyperparameters(cfg)
 
-        # Initialize RoBERTa with gradient checkpointing
-        self.roberta = RobertaModel.from_pretrained(cfg.model.model_name)
+        model_name = cfg.model.model_name
+        if model_name == "albert/albert-base-v2":
+            self.transformer = AutoModel.from_pretrained(model_name)
+        else:
+            raise ValueError(f"Model {model_name} not supported")
 
         self.dropout = nn.Dropout(cfg.model.dropout)
-        self.classifier = nn.Linear(self.roberta.config.hidden_size, cfg.model.num_classes)
+        self.classifier = nn.Linear(self.transformer.config.hidden_size, cfg.model.num_classes)
     
         # Initialize metrics with compute_on_step=False for better performance
         self.train_accuracy = Accuracy(task="multiclass", num_classes=cfg.model.num_classes)
@@ -31,6 +34,7 @@ class LLMDetector(pl.LightningModule):
         self.test_accuracy = Accuracy(task="multiclass", num_classes=cfg.model.num_classes)
 
         # Store training parameters
+        self.optimizer_name = cfg.optimizer.type
         self.lr = cfg.optimizer.lr
 
         # Loss function with label smoothing
@@ -40,7 +44,7 @@ class LLMDetector(pl.LightningModule):
 
     def forward(self, input_ids, attention_mask):
         """Optimized forward pass"""
-        outputs = self.roberta(
+        outputs = self.transformer(
             input_ids=input_ids,
             attention_mask=attention_mask,
             output_hidden_states=False  # Disable unused output
@@ -79,16 +83,14 @@ class LLMDetector(pl.LightningModule):
 
     def configure_optimizers(self):
         """Configure optimizer based on config file"""
-        optimizer_name = self.cfg.optimizer.get('type', 'Adam').lower()
-        
-        if optimizer_name == 'adam':
+        if self.optimizer_name == 'adam':
             optimizer = Adam(self.parameters(), lr=self.lr)
-        elif optimizer_name == 'adamw':
+        elif self.optimizer_name == 'adamw':
             optimizer = AdamW(self.parameters(), lr=self.lr)
-        elif optimizer_name == 'sgd':
+        elif self.optimizer_name == 'sgd':
             optimizer = SGD(self.parameters(), lr=self.lr)
         else:
-            raise ValueError(f"Optimizer {optimizer_name} not supported")
+            raise ValueError(f"Optimizer {self.optimizer_name} not supported")
             
         return optimizer
 
@@ -101,7 +103,7 @@ class LLMDetector(pl.LightningModule):
 @hydra.main(version_base=None, config_path="../../configs", config_name="config")
 def main(cfg):
     # Create tokenizer and model
-    tokenizer = RobertaTokenizer.from_pretrained(cfg.model.model_name)
+    tokenizer = AutoTokenizer.from_pretrained(cfg.model.model_name)
     model = LLMDetector(cfg)
     
     # Model summary with parameter count by layer
@@ -116,12 +118,12 @@ def main(cfg):
     dummy_text = "This is a sample text to test the model."
     encoding = tokenizer.encode_plus(
         dummy_text,
-        add_special_tokens=True,
-        # max_length=cfg.data.max_length,
-        # padding='max_length',
-        truncation=True,
-        return_attention_mask=True,
-        return_tensors='pt'
+        add_special_tokens=True, # Adds special tokens like [CLS] at start and [SEP] at end to help model understand input
+        # max_length=cfg.data.max_length, # Maximum length of the sequence, if text is longer it will be truncated
+        # padding='max_length', # Pads sequences to reach max_length
+        # truncation=True, # If text is longer than max_length, it will be cut off
+        return_attention_mask=True, # Returns a mask identifying real tokens vs padding
+        return_tensors='pt' # Returns PyTorch tensors
     )
     
     with torch.no_grad():  # Add no_grad for inference
