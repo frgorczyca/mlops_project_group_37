@@ -179,3 +179,5 @@ cython_debug/
 # Ignore everything in data/raw but not the folder itself
 data/raw/*
 !data/raw/.gitkeep
+
+devcontainer/
