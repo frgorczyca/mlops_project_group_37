@@ -8,6 +8,7 @@ from pytorch_lightning.loggers import WandbLogger
 from transformers import AutoTokenizer
 from torch.utils.data import Dataset, DataLoader
 from sklearn.model_selection import train_test_split
+import pandas as pd
 
 from text_detect.model import LLMDetector
 
@@ -47,12 +48,8 @@ def load_data(cfg):
     """Load and preprocess the data."""
     # This is a placeholder - implement your data loading logic here
     # For example:
-    # texts = pd.read_csv(cfg.data.path)['text'].values
-    # labels = pd.read_csv(cfg.data.path)['label'].values
-    
-    # Placeholder data
-    texts = ["Sample text 1", "Sample text 2"]  # Replace with your data
-    labels = [0, 1]  # Replace with your labels
+    texts = pd.read_csv(cfg.data.path)['text'].values
+    labels = pd.read_csv(cfg.data.path)['label'].values
     
     return train_test_split(
         texts, labels, 
