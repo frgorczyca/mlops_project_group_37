@@ -4,10 +4,11 @@ from torch import nn
 import pytorch_lightning as pl
 
 from transformers import AutoModel, AutoTokenizer
-from torch.optim import Adam, AdamW, SGD
+from torch.optim import AdamW
 from torchmetrics import Accuracy
 
 from loguru import logger
+
 
 class LLMDetector(pl.LightningModule):
     """
@@ -26,7 +27,8 @@ class LLMDetector(pl.LightningModule):
         try:
             self.transformer = AutoModel.from_pretrained(model_name)
             logger.debug(f"Transformer config: {self.transformer.config}")
-        except:
+        except Exception as e:
+            logger.error(f"Error loading transformer model: {str(e)}")
             logger.error(f"Unsupported model: {model_name}")
             raise ValueError(f"Model {model_name} not supported")
 
@@ -46,19 +48,13 @@ class LLMDetector(pl.LightningModule):
         logger.info(f"Using optimizer: {self.optimizer_name} with learning rate: {self.lr}")
 
         # Loss function with label smoothing
-        self.criterion = nn.CrossEntropyLoss(
-            label_smoothing=cfg.training.get('label_smoothing', 0.0)
-        )
+        self.criterion = nn.CrossEntropyLoss(label_smoothing=cfg.training.get("label_smoothing", 0.0))
         logger.debug(f"Using CrossEntropyLoss with label_smoothing={cfg.training.get('label_smoothing', 0.0)}")
 
     def forward(self, input_ids, attention_mask):
         """Optimized forward pass"""
         try:
-            outputs = self.transformer(
-                input_ids=input_ids,
-                attention_mask=attention_mask,
-                output_hidden_states=False
-            )
+            outputs = self.transformer(input_ids=input_ids, attention_mask=attention_mask, output_hidden_states=False)
             pooled_output = outputs[0][:, 0, :]
             pooled_output = self.dropout(pooled_output)
             return self.classifier(pooled_output)
@@ -66,25 +62,25 @@ class LLMDetector(pl.LightningModule):
             logger.error(f"Forward pass failed: {str(e)}")
             raise
 
-    def _shared_step(self, batch, batch_idx, step_type='train'):
+    def _shared_step(self, batch, batch_idx, step_type="train"):
         """Shared step for train/val/test to reduce code duplication"""
         try:
-            input_ids = batch['input_ids']
-            attention_mask = batch['attention_mask']
-            labels = batch['labels']
+            input_ids = batch["input_ids"]
+            attention_mask = batch["attention_mask"]
+            labels = batch["labels"]
 
             logits = self(input_ids, attention_mask)
             loss = self.criterion(logits, labels)
 
             # Calculate accuracy
             preds = torch.argmax(logits, dim=1)
-            acc = getattr(self, f'{step_type}_accuracy')(preds, labels)
+            acc = getattr(self, f"{step_type}_accuracy")(preds, labels)
 
             # Log metrics
-            self.log(f'{step_type}_loss', loss, on_step=(step_type=='train'), on_epoch=True, prog_bar=True)
-            self.log(f'{step_type}_acc', acc, on_step=(step_type=='train'), on_epoch=True, prog_bar=True)
+            self.log(f"{step_type}_loss", loss, on_step=(step_type == "train"), on_epoch=True, prog_bar=True)
+            self.log(f"{step_type}_acc", acc, on_step=(step_type == "train"), on_epoch=True, prog_bar=True)
 
-            if step_type == 'train' and batch_idx % 100 == 0:
+            if step_type == "train" and batch_idx % 100 == 0:
                 # logger.debug(f"Batch {batch_idx}: {step_type}_loss={loss:.4f}, {step_type}_acc={acc:.4f}")
                 ...
 
@@ -94,14 +90,13 @@ class LLMDetector(pl.LightningModule):
             raise e
 
     def training_step(self, batch, batch_idx):
-        return self._shared_step(batch, batch_idx, 'train')
+        return self._shared_step(batch, batch_idx, "train")
 
     def validation_step(self, batch, batch_idx):
-        return self._shared_step(batch, batch_idx, 'val')
+        return self._shared_step(batch, batch_idx, "val")
 
     def test_step(self, batch, batch_idx):
-        return self._shared_step(batch, batch_idx, 'test')
-
+        return self._shared_step(batch, batch_idx, "test")
 
     # def configure_optimizers(self):
     #     """Configure optimizer based on config file"""
@@ -125,22 +120,14 @@ class LLMDetector(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = AdamW(self.parameters(), lr=self.lr, weight_decay=0.01)
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            optimizer,
-            T_max=self.trainer.max_epochs,
-            eta_min=self.lr * 0.01
+            optimizer, T_max=self.trainer.max_epochs, eta_min=self.lr * 0.01
         )
-        return {
-            "optimizer": optimizer,
-            "lr_scheduler": {
-                "scheduler": scheduler,
-                "monitor": "val_loss"
-        }
-    }
+        return {"optimizer": optimizer, "lr_scheduler": {"scheduler": scheduler, "monitor": "val_loss"}}
 
     def predict_step(self, batch, batch_idx):
         try:
-            input_ids = batch['input_ids']
-            attention_mask = batch['attention_mask']
+            input_ids = batch["input_ids"]
+            attention_mask = batch["attention_mask"]
             return torch.argmax(self(input_ids, attention_mask), dim=1)
         except Exception as e:
             logger.error(f"Prediction failed: {str(e)}")
@@ -168,17 +155,17 @@ def main(cfg):
     dummy_text = "This is a sample text to test the model."
     encoding = tokenizer.encode_plus(
         dummy_text,
-        add_special_tokens=True, # Adds special tokens like [CLS] at start and [SEP] at end to help model understand input
+        add_special_tokens=True,  # Adds special tokens like [CLS] at start and [SEP] at end to help model understand input
         # max_length=cfg.data.max_length, # Maximum length of the sequence, if text is longer it will be truncated
         # padding='max_length', # Pads sequences to reach max_length
         # truncation=True, # If text is longer than max_length, it will be cut off
-        return_attention_mask=True, # Returns a mask identifying real tokens vs padding
-        return_tensors='pt' # Returns PyTorch tensors
+        return_attention_mask=True,  # Returns a mask identifying real tokens vs padding
+        return_tensors="pt",  # Returns PyTorch tensors
     )
 
     with torch.no_grad():  # Add no_grad for inference
-        input_ids = encoding['input_ids']
-        attention_mask = encoding['attention_mask']
+        input_ids = encoding["input_ids"]
+        attention_mask = encoding["attention_mask"]
 
         logger.debug(f"Input IDs shape: {input_ids.shape}")
         logger.debug(f"Attention mask shape: {attention_mask.shape}")
@@ -190,6 +177,7 @@ def main(cfg):
         prediction = torch.argmax(output, dim=1)
         logger.info(f"Prediction: {prediction.item()} (0: Human, 1: AI)")
         logger.info("Model testing completed")
+
 
 if __name__ == "__main__":
     main()

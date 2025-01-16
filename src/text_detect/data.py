@@ -1,9 +1,9 @@
 from pathlib import Path
 
-import typer
 from torch.utils.data import Dataset
 import shutil
 import csv
+
 
 class DatasetManager(Dataset):
     """My custom dataset."""
@@ -14,13 +14,13 @@ class DatasetManager(Dataset):
 
     def __len__(self) -> int:
         """Return the length of the dataset."""
-        with open(self.data_path, newline='') as csvfile:
+        with open(self.data_path, newline="") as csvfile:
             reader = csv.reader(csvfile)
             return sum(1 for _ in reader)
 
     def __getitem__(self, index: int):
         """Return a given sample from the dataset."""
-        with open(self.data_path, newline='') as csvfile:
+        with open(self.data_path, newline="") as csvfile:
             reader = csv.reader(csvfile)
             for i, row in enumerate(reader):
                 if i == index:
@@ -44,7 +44,7 @@ class DatasetManager(Dataset):
             for item in output_folder.iterdir():
                 if item.is_file():
                     try:
-                        number = int(item.stem.split('_')[-1])
+                        number = int(item.stem.split("_")[-1])
                         if number > highest_number:
                             highest_number = number
                             highest_file = item
@@ -70,5 +70,5 @@ def preprocess(raw_data_path: Path, output_folder: Path) -> None:
 
 
 if __name__ == "__main__":
-    #typer.run(preprocess)
+    # typer.run(preprocess)
     preprocess(Path("data/raw"), Path("data/processed"))
