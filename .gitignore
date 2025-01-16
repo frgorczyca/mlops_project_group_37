@@ -190,3 +190,8 @@ lightning_logs/*
 !lightning_logs/.gitkeep
 outputs/*
 !outputs/.gitkeep
+
+# Saved models
+models/*
+!models/.gitkeep
+

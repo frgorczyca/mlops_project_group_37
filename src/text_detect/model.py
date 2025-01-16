@@ -20,7 +20,7 @@ class LLMDetector(pl.LightningModule):
         logger.info("Initializing LLMDetector model")
 
         # Save hyperparameters to the checkpoint
-        self.save_hyperparameters(cfg)
+        # self.save_hyperparameters(cfg)
 
         model_name = cfg.model.model_name
         logger.info(f"Loading transformer model: {model_name}")
@@ -98,31 +98,24 @@ class LLMDetector(pl.LightningModule):
     def test_step(self, batch, batch_idx):
         return self._shared_step(batch, batch_idx, "test")
 
-    # def configure_optimizers(self):
-    #     """Configure optimizer based on config file"""
-    #     logger.info(f"Configuring {self.optimizer_name} optimizer")
-    #     try:
-    #         if self.optimizer_name == 'adam':
-    #             optimizer = Adam(self.parameters(), lr=self.lr)
-    #         elif self.optimizer_name == 'adamw':
-    #             optimizer = AdamW(self.parameters(), lr=self.lr)
-    #         elif self.optimizer_name == 'sgd':
-    #             optimizer = SGD(self.parameters(), lr=self.lr)
-    #         else:
-    #             logger.error(f"Unsupported optimizer: {self.optimizer_name}")
-    #             raise ValueError(f"Optimizer {self.optimizer_name} not supported")
-
-    #         return optimizer
-    #     except Exception as e:
-    #         logger.error(f"Failed to configure optimizer: {str(e)}")
-    #         raise
-
     def configure_optimizers(self):
-        optimizer = AdamW(self.parameters(), lr=self.lr, weight_decay=0.01)
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            optimizer, T_max=self.trainer.max_epochs, eta_min=self.lr * 0.01
-        )
-        return {"optimizer": optimizer, "lr_scheduler": {"scheduler": scheduler, "monitor": "val_loss"}}
+        """Configure optimizer based on config file"""
+        logger.info(f"Configuring {self.optimizer_name} optimizer")
+        try:
+            if self.optimizer_name == 'adam':
+                optimizer = Adam(self.parameters(), lr=self.lr)
+            elif self.optimizer_name == 'adamw':
+                optimizer = AdamW(self.parameters(), lr=self.lr, weight_decay=0.01)
+            elif self.optimizer_name == 'sgd':
+                optimizer = SGD(self.parameters(), lr=self.lr)
+            else:
+                logger.error(f"Unsupported optimizer: {self.optimizer_name}")
+                raise ValueError(f"Optimizer {self.optimizer_name} not supported")
+
+            return optimizer
+        except Exception as e:
+            logger.error(f"Failed to configure optimizer: {str(e)}")
+            raise
 
     def predict_step(self, batch, batch_idx):
         try:
