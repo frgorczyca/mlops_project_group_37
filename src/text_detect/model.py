@@ -4,7 +4,7 @@ from torch import nn
 import pytorch_lightning as pl
 
 from transformers import AutoModel, AutoTokenizer
-from torch.optim import AdamW
+from torch.optim import Adam, AdamW, SGD
 from torchmetrics import Accuracy
 
 from loguru import logger
