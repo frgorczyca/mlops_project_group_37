@@ -1,0 +1,28 @@
+seed: 42
+model:
+  model_name: prajjwal1/bert-tiny
+  save_model_name: model
+  dropout: 0.3
+  num_classes: 2
+optimizer:
+  type: adam
+  lr: 2.0e-05
+data:
+  max_length: 512
+  test_size: 0.2
+  path: data/processed/train_drcat_04.csv
+training:
+  save_model: true
+  output_dir: models
+  batch_size: 16
+  max_epochs: 2
+  precision: 16-mixed
+  num_workers: 8
+  save_checkpoints: false
+  save_top_k: 3
+  early_stopping: true
+  patience: 3
+wandb:
+  use_wandb: false
+  project_name: text-detect
+  run_name: test-run

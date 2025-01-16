@@ -185,6 +185,8 @@ data/processed/*
 
 devcontainer/
 
-# Checkpoints (for now), but keep the folder
+# Checkpoints and hydra logs (for now), but keep the folder
 lightning_logs/*
 !lightning_logs/.gitkeep
+outputs/*
+!outputs/.gitkeep

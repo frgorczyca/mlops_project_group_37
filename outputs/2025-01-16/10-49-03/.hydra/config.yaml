@@ -1,0 +1,32 @@
+preprocessing:
+  normalize: true
+model:
+  conv_layers:
+  - filters: 32
+    kernel_size: 3
+    stride: 1
+  - filters: 64
+    kernel_size: 3
+    stride: 1
+  - filters: 128
+    kernel_size: 3
+    stride: 1
+  pool_size: 2
+  pool_stride: 2
+  dropout_rate: 0.5
+  input_channels: 1
+  output_dim: 10
+optimizer:
+  type: Adam
+  lr: 0.001
+loss:
+  type: CrossEntropyLoss
+training:
+  seed: 42
+  model_checkpoint_path: models/trained_model_1.pth
+  training_statistics_path: reports/figures/training_statistics.png
+  train_val_split: 0.8
+  epochs: 10
+  batch_size: 32
+analysis:
+  embeddings_path: reports/figures/embeddings.png
