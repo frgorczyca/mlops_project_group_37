@@ -1,0 +1,14 @@
+# configs/default.yaml
+defaults:
+  - model: bert_tiny
+  - optimizer: adamw
+  - data: default
+  - training: default
+  - wandb: default
+
+hydra:
+  job:
+    chdir: false
+
+# Random seed for reproducibility
+seed: 42

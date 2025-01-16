@@ -22,7 +22,7 @@ class LLMDetector(pl.LightningModule):
         # Save hyperparameters to the checkpoint
         # self.save_hyperparameters(cfg)
 
-        model_name = cfg.model.model_name
+        model_name = cfg.model.transformer_name
         logger.info(f"Loading transformer model: {model_name}")
         try:
             self.transformer = AutoModel.from_pretrained(model_name)
@@ -32,19 +32,26 @@ class LLMDetector(pl.LightningModule):
             raise ValueError(f"Model {model_name} not supported")
 
         self.dropout = nn.Dropout(cfg.model.dropout)
-        self.classifier = nn.Linear(self.transformer.config.hidden_size, cfg.model.num_classes)
-        logger.info(f"Initialized classifier with {cfg.model.num_classes} classes")
+        self.classifier = nn.Linear(self.transformer.config.hidden_size, cfg.data.num_classes)
+        logger.info(f"Initialized classifier with {cfg.data.num_classes} classes")
 
         # Initialize metrics with compute_on_step=False for better performance
         logger.debug("Initializing metrics")
-        self.train_accuracy = Accuracy(task="multiclass", num_classes=cfg.model.num_classes)
-        self.val_accuracy = Accuracy(task="multiclass", num_classes=cfg.model.num_classes)
-        self.test_accuracy = Accuracy(task="multiclass", num_classes=cfg.model.num_classes)
+        self.train_accuracy = Accuracy(task="multiclass", num_classes=cfg.data.num_classes)
+        self.val_accuracy = Accuracy(task="multiclass", num_classes=cfg.data.num_classes)
+        self.test_accuracy = Accuracy(task="multiclass", num_classes=cfg.data.num_classes)
 
         # Store training parameters
         self.optimizer_name = cfg.optimizer.type
         self.lr = cfg.optimizer.lr
-        logger.info(f"Using optimizer: {self.optimizer_name} with learning rate: {self.lr}")
+        if self.optimizer_name == 'adamw':
+            self.weight_decay = cfg.optimizer.weight_decay
+            logger.info(f"Using optimizer: {self.optimizer_name} with learning rate: {self.lr} and weight decay: {self.weight_decay}")
+        elif self.optimizer_name == 'sgd':
+            self.momentum = cfg.optimizer.momentum
+            logger.info(f"Using optimizer: {self.optimizer_name} with learning rate: {self.lr} and momentum: {self.momentum}")
+        else:
+            logger.info(f"Using optimizer: {self.optimizer_name} with learning rate: {self.lr}")
 
         # Loss function with label smoothing
         self.criterion = nn.CrossEntropyLoss(
@@ -111,9 +118,9 @@ class LLMDetector(pl.LightningModule):
             if self.optimizer_name == 'adam':
                 optimizer = Adam(self.parameters(), lr=self.lr)
             elif self.optimizer_name == 'adamw':
-                optimizer = AdamW(self.parameters(), lr=self.lr, weight_decay=0.01)
+                optimizer = AdamW(self.parameters(), lr=self.lr, weight_decay=self.weight_decay)
             elif self.optimizer_name == 'sgd':
-                optimizer = SGD(self.parameters(), lr=self.lr)
+                optimizer = SGD(self.parameters(), lr=self.lr, momentum=self.momentum)
             else:
                 logger.error(f"Unsupported optimizer: {self.optimizer_name}")
                 raise ValueError(f"Optimizer {self.optimizer_name} not supported")
@@ -133,13 +140,13 @@ class LLMDetector(pl.LightningModule):
             raise
 
 
-@hydra.main(version_base="1.1", config_path="../../configs", config_name="config")
+@hydra.main(version_base="1.1", config_path="../../configs", config_name="default")
 def main(cfg):
     logger.info("Starting model testing")
 
     # Create tokenizer and model
-    logger.info(f"Loading tokenizer and model: {cfg.model.model_name}")
-    tokenizer = AutoTokenizer.from_pretrained(cfg.model.model_name)
+    logger.info(f"Loading tokenizer and model: {cfg.model.transformer_name}")
+    tokenizer = AutoTokenizer.from_pretrained(cfg.model.transformer_name)
     model = LLMDetector(cfg)
 
     # Model summary with parameter count by layer

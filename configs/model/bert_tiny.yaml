@@ -1,0 +1,3 @@
+# configs/model/bert_tiny.yaml
+transformer_name: "prajjwal1/bert-tiny"
+dropout: 0.3
