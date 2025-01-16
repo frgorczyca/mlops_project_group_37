@@ -5,7 +5,6 @@ from torch.utils.data import Dataset
 import shutil
 import csv
 
-
 class DatasetManager(Dataset):
     """My custom dataset."""
 
