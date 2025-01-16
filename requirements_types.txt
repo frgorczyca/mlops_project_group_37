@@ -1,0 +1,9 @@
+types-invoke
+types-pre-commit
+types-pytest
+types-coverage
+types-ruff
+types-mypy
+types-mkdocs
+types-mkdocs-material
+types-mkdocstrings-python

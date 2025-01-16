@@ -30,6 +30,7 @@ def requirements(ctx: Context) -> None:
 def dev_requirements(ctx: Context) -> None:
     """Install development requirements."""
     ctx.run('pip install -e .["dev"]', echo=True, pty=not WINDOWS)
+    ctx.run('pip install -e .["types"]', echo=True, pty=not WINDOWS)
 
 
 @task

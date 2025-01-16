@@ -23,12 +23,13 @@ jobs:
       - name: Install dependencies
         run: |
           pip install ruff mypy
-          pip list
+          pip install
+          pip list -r >
+
       - name: Ruff check
         run: ruff check .
       - name: Ruff format
         run: ruff format .
       - name: Mypy check
         run: |
-          mypy --install-types --non-interactive
           mypy src/ --config-file pyproject.toml
