@@ -35,5 +35,5 @@ jobs:
 
       - name: Run tests & coverage
         run: |
-          coverage run -m pytest src/tests/
+          coverage run -m pytest src/tests/ --omit="*/test*"
           coverage report -m
