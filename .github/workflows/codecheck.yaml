@@ -23,7 +23,6 @@ jobs:
       - name: Install dependencies
         run: |
           pip install ruff mypy
-          pip install -r requirements_types.txt
           pip list
       - name: Ruff check
         run: ruff check .
@@ -31,4 +30,5 @@ jobs:
         run: ruff format .
       - name: Mypy check
         run: |
+          mypy --install-types --non-interactive
           mypy src/ --config-file pyproject.toml
