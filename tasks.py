@@ -39,6 +39,7 @@ def download_data(ctx: Context) -> None:
     ctx.run("sh data/downloadKaggleDataset.sh", echo=True, pty=not WINDOWS)
 
 
+
 # Project commands
 @task
 def preprocess_data(ctx: Context) -> None:
