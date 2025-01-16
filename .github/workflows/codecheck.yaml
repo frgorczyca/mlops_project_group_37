@@ -24,8 +24,7 @@ jobs:
         run: |
           pip install ruff mypy
           pip install
-          pip list -r > requirements_types.txt
-
+          pip list -r requirements_types.txt
       - name: Ruff check
         run: ruff check .
       - name: Ruff format
