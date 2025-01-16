@@ -56,7 +56,7 @@ class DatasetManager(Dataset):
             else:
                 print("No files found in the output folder")
                 return
-            
+
             self.data_path = output_folder / highest_file.name
         else:
             self.data_path = output_folder / f"data_{version}.csv"
