@@ -23,8 +23,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install ruff mypy
-          pip install
-          pip list -r requirements_types.txt
+          pip install -r requirements_types.txt
+          pip list
       - name: Ruff check
         run: ruff check .
       - name: Ruff format
