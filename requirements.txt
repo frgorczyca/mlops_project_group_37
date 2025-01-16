@@ -9,5 +9,5 @@ wandb==0.19.2
 numpy==1.26.4
 pytest
 coverage
-scikit-learn
+scikit-learn==1.5.2
 pandas
