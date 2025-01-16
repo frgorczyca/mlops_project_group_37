@@ -1,0 +1,3 @@
+# configs/optimizer/adam.yaml
+type: "adam"
+lr: 2e-5

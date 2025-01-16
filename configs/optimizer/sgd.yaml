@@ -1,0 +1,4 @@
+# configs/optimizer/sgd.yaml
+type: "adam"
+lr: 2e-5
+momentum: 0.9

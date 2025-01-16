@@ -1,0 +1,23 @@
+# configs/training/default.yaml
+# Save options
+save_model: True
+output_dir: "models"
+model_name: model.pth
+
+# Dataloaders
+val_size: 0.2
+batch_size: 16
+num_workers: 8
+
+# Trainer hyperparamters
+max_epochs: 2
+precision: "16-mixed"
+
+# Callbacks
+# - Checkpointing
+save_checkpoints: False
+save_top_k: 3
+# - Early stopping
+early_stopping: True
+patience: 3
+
