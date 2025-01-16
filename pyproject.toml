@@ -28,7 +28,8 @@ dev = {file = ['requirements_dev.txt']}
 [tool.ruff]
 line-length = 120
 
-[tool.mypy]
+[[tool.mypy.overrides]]
+module = ["transformers", "sklearn.model_selection"]
 ignore_missing_imports = true
 
 [tool.coverage.run]
