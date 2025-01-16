@@ -2,6 +2,7 @@ import os
 import hydra
 import torch
 import pytorch_lightning as pl
+import wandb
 
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 from pytorch_lightning.loggers import WandbLogger
@@ -15,19 +16,8 @@ from text_detect.model import LLMDetector
 from loguru import logger
 
 
-# Configure loguru logger
-logger.add(
-    "logs/training_{time}.log",
-    rotation="100 MB",
-    level="INFO",
-    format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}"
-)
-
-# Set this environment variable before importing tokenizers
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
-
 class LLMDataset(Dataset):
-    def __init__(self, texts, labels, tokenizer, max_length=512):
+    def __init__(self, texts, labels, tokenizer, max_length):
         self.texts = texts
         self.labels = labels
         self.tokenizer = tokenizer
@@ -90,6 +80,22 @@ def load_data(cfg):
 
 @hydra.main(version_base="1.1", config_path="../../configs", config_name="config")
 def train(cfg):
+    # Get the path to the hydra output directory
+    hydra_path = hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
+    
+    logger.add(
+        os.path.join(hydra_path, "train.log"),
+        rotation="100 MB",
+        level="INFO",
+        format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}"
+    )
+    # logger options:
+    # logger.debug("Used for debugging your code.")
+    # logger.info("Informative messages from your code.")
+    # logger.warning("Everything works but there is something to be aware of.")
+    # logger.error("There's been a mistake with the process.")
+    # logger.critical("There is something terribly wrong and process may terminate.")
+
     logger.info("Starting training pipeline")
     logger.debug(f"Configuration: {cfg}")
 
@@ -99,9 +105,11 @@ def train(cfg):
 
     # Load tokenizer
     logger.info(f"Loading tokenizer: {cfg.model.model_name}")
-    tokenizer = tokenizer = AutoTokenizer.from_pretrained(cfg.model.model_name)
-
+    os.environ["TOKENIZERS_PARALLELISM"] = "false" # Set this environment variable before importing tokenizers
+    tokenizer = AutoTokenizer.from_pretrained(cfg.model.model_name)
+    
     # Load and split data
+    logger.info("Loading data")
     train_texts, val_texts, test_texts, train_labels, val_labels, test_labels = load_data(cfg)
 
     # Create datasets
@@ -131,7 +139,7 @@ def train(cfg):
         train_dataset,
         batch_size=cfg.training.batch_size,
         shuffle=True,
-        num_workers=2,
+        num_workers=cfg.training.num_workers,
         persistent_workers=True,
         pin_memory=True,
     )
@@ -139,7 +147,7 @@ def train(cfg):
         val_dataset,
         batch_size=cfg.training.batch_size,
         shuffle=False,
-        num_workers=2,
+        num_workers=cfg.training.num_workers,
         persistent_workers=True,
         pin_memory=True,
     )
@@ -147,14 +155,16 @@ def train(cfg):
         test_dataset,
         batch_size=cfg.training.batch_size,
         shuffle=False,
-        num_workers=2,
+        num_workers=cfg.training.num_workers,
         persistent_workers=True,
         pin_memory=True,
     )
+    
 
     # Initialize model
     logger.info("Initializing model")
     model = LLMDetector(cfg)
+    
 
     # Setup callbacks
     callbacks = []
@@ -180,9 +190,12 @@ def train(cfg):
         )
         callbacks.append(early_stopping_callback)
         logger.info(f"Added early stopping callback with patience {cfg.training.patience}")
+    
+    logger.info(f"Callbacks: {callbacks}")
 
-    # Initialize logger
-    logger_wandb = None
+
+    # Initialize Weights & Biases logger
+    logger_wandb = False
     if cfg.wandb.use_wandb:
         logger_wandb = WandbLogger(
             project=cfg.wandb.project_name,
@@ -195,37 +208,26 @@ def train(cfg):
             }
         )
         logger.info("Initialized W&B logger")
-
-    # Get the path to the hydra output directory
-    hydra_path = hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
-    logger.add(os.path.join(hydra_path, "train.log"))
-    logger.info(cfg)
-
-    # logger.debug("Used for debugging your code.")
-    # logger.info("Informative messages from your code.")
-    # logger.warning("Everything works but there is something to be aware of.")
-    # logger.error("There's been a mistake with the process.")
-    # logger.critical("There is something terribly wrong and process may terminate.")
+    else:
+        logger.warning("W&B logging disabled")
+    
 
     # Initialize trainer
     trainer = pl.Trainer(
         max_epochs=cfg.training.max_epochs,
-        accelerator="mps", # 'auto',
+        accelerator='auto',
         devices=1,
-        # devices=cfg.training.devices,
         logger=logger_wandb,
         log_every_n_steps=10,
+        enable_checkpointing=False, # Disable default checkpointing of last trained epoch
         callbacks=callbacks,
-        # enable_checkpointing=True,
-        # detect_anomaly=True,
-        # limit_train_batches=0.2
-        gradient_clip_val=1.0, # Prevent exploding gradients
+        # gradient_clip_val=1.0, # Prevent exploding gradients
         enable_progress_bar=True,
-        accumulate_grad_batches=2,  # Effective batch size = batch_size * accumulate
-        precision="16-mixed", # Use mixed precision training
+        precision=cfg.training.precision,
     )
 
     logger.info(f"Using device: {trainer.strategy.root_device}")
+    
 
     # Train model
     logger.info("Starting model training")
@@ -235,6 +237,29 @@ def train(cfg):
         val_dataloaders=val_loader,
     )
     logger.success("Training completed successfully")
+
+    model_path = os.path.join(cfg.training.output_dir, cfg.training.model_name)
+
+    # Save final model if needed
+    if cfg.training.save_model:
+        torch.save(model.state_dict(), model_path)
+        logger.info(f"Saved model state dict to {model_path}")
+    else:
+        logger.warning("Model not saved")
+
+    # Save model as W&B artifact
+    if cfg.wandb.save_artifact:
+        artifact = wandb.Artifact(
+            name="...",
+            type="model",
+            description="...",
+            metadata={"..."},
+        )
+        artifact.add_file(os.path.join(cfg.training.output_dir, cfg.training.model_name))
+        wandb.log_artifact(artifact)
+    else:
+        logger.warning("Model artifact not saved to W&B artifact registry")
+
 
     # Test the model
     logger.info("Starting model testing")
@@ -247,12 +272,6 @@ def train(cfg):
             "test_loss": test_results[0]["test_loss"],
             "test_acc": test_results[0]["test_acc"]
         })
-
-    # Save final model if needed
-    if cfg.training.save_model:
-        save_path = f"models/{cfg.model.save_model_name}"
-        torch.save(model.state_dict(), save_path)
-        logger.info(f"Saved model state dict to {save_path}")
 
     logger.success("Training and testing completed successfully")
 
