@@ -29,4 +29,4 @@ jobs:
       - name: Ruff format
         run: ruff format .
       - name: Mypy check
-        run: mypy src/ --config-file project.toml
+        run: mypy src/ --config-file pyproject.toml
