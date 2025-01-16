@@ -34,16 +34,16 @@ class LLMDataset(Dataset):
             text,
             add_special_tokens=True,
             max_length=self.max_length,
-            padding='max_length',
+            padding="max_length",
             truncation=True,
             return_attention_mask=True,
-            return_tensors='pt'
+            return_tensors="pt",
         )
 
         return {
-            'input_ids': encoding['input_ids'].flatten(),
-            'attention_mask': encoding['attention_mask'].flatten(),
-            'labels': torch.tensor(label, dtype=torch.long)
+            "input_ids": encoding["input_ids"].flatten(),
+            "attention_mask": encoding["attention_mask"].flatten(),
+            "labels": torch.tensor(label, dtype=torch.long),
         }
     
     def get_text(self, idx):
@@ -52,14 +52,15 @@ class LLMDataset(Dataset):
     def get_label(self, idx):
         return self.labels[idx]
 
+
 def load_data(cfg):
     """Load and preprocess the data with train/val/test split."""
     logger.info(f"Loading data from {cfg.data.path}")
     logger.debug(f"CWD: {os.getcwd()}")
 
     data = pd.read_csv(cfg.data.path)
-    texts = data['text'].values
-    labels = data['label'].values
+    texts = data["text"].values
+    labels = data["label"].values
 
     logger.info(f"Successfully loaded {len(texts)} samples")
     logger.debug(f"Label distribution: {pd.Series(labels).value_counts().to_dict()}")
@@ -69,7 +70,7 @@ def load_data(cfg):
         texts, labels,
         test_size=cfg.data.test_size,
         random_state=cfg.seed,
-        stratify=labels  # Maintain label distribution
+        stratify=labels,  # Maintain label distribution
     )
 
     # Second split: separate train and validation
@@ -88,7 +89,7 @@ def load_data(cfg):
 def train(cfg):
     # Get the path to the hydra output directory
     hydra_path = hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
-    
+
     logger.add(
         os.path.join(hydra_path, "train.log"),
         rotation="100 MB",
@@ -114,24 +115,9 @@ def train(cfg):
 
     # Create datasets
     logger.info("Creating datasets")
-    train_dataset = LLMDataset(
-        train_texts,
-        train_labels,
-        tokenizer,
-        max_length=cfg.data.max_length
-    )
-    val_dataset = LLMDataset(
-        val_texts,
-        val_labels,
-        tokenizer,
-        max_length=cfg.data.max_length
-    )
-    test_dataset = LLMDataset(
-        test_texts,
-        test_labels,
-        tokenizer,
-        max_length=cfg.data.max_length
-    )
+    train_dataset = LLMDataset(train_texts, train_labels, tokenizer, max_length=cfg.data.max_length)
+    val_dataset = LLMDataset(val_texts, val_labels, tokenizer, max_length=cfg.data.max_length)
+    test_dataset = LLMDataset(test_texts, test_labels, tokenizer, max_length=cfg.data.max_length)
 
     # Create dataloaders
     logger.info("Initializing dataloaders")
@@ -159,12 +145,12 @@ def train(cfg):
         persistent_workers=True,
         pin_memory=True,
     )
-    
+
 
     # Initialize model
     logger.info("Initializing model")
     model = LLMDetector(cfg)
-    
+
 
     # Setup callbacks
     callbacks = []
@@ -190,7 +176,7 @@ def train(cfg):
         )
         callbacks.append(early_stopping_callback)
         logger.info(f"Added early stopping callback with patience {cfg.training.patience}")
-    
+
     logger.info(f"Callbacks: {callbacks}")
 
 
@@ -203,14 +189,12 @@ def train(cfg):
             save_dir=cfg.training.output_dir,
             job_type="train",
             tags=["training"],
-            config={
-                cfg
-            }
+            config={cfg},
         )
         logger.info("Initialized W&B logger")
     else:
         logger.warning("W&B logging disabled")
-    
+
 
     # Initialize trainer
     trainer = pl.Trainer(
@@ -227,7 +211,7 @@ def train(cfg):
     )
 
     logger.info(f"Using device: {trainer.strategy.root_device}")
-    
+
 
     # Train model
     logger.info("Starting model training")
@@ -268,12 +252,10 @@ def train(cfg):
     # Log test results
     logger.info(f"Test Results: {test_results}")
     if cfg.wandb.use_wandb and logger_wandb:
-        logger_wandb.log_metrics({
-            "test_loss": test_results[0]["test_loss"],
-            "test_acc": test_results[0]["test_acc"]
-        })
+        logger_wandb.log_metrics({"test_loss": test_results[0]["test_loss"], "test_acc": test_results[0]["test_acc"]})
 
     logger.success("Training and testing completed successfully")
+
 
 if __name__ == "__main__":
     train()
