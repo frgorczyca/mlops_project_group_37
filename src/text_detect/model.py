@@ -33,7 +33,7 @@ class LLMDetector(pl.LightningModule):
         self.dropout = nn.Dropout(cfg.model.dropout)
         self.classifier = nn.Linear(self.transformer.config.hidden_size, cfg.model.num_classes)
         logger.info(f"Initialized classifier with {cfg.model.num_classes} classes")
-    
+
         # Initialize metrics with compute_on_step=False for better performance
         logger.debug("Initializing metrics")
         self.train_accuracy = Accuracy(task="multiclass", num_classes=cfg.model.num_classes)
@@ -75,19 +75,19 @@ class LLMDetector(pl.LightningModule):
 
             logits = self(input_ids, attention_mask)
             loss = self.criterion(logits, labels)
-            
+
             # Calculate accuracy
             preds = torch.argmax(logits, dim=1)
             acc = getattr(self, f'{step_type}_accuracy')(preds, labels)
-            
+
             # Log metrics
             self.log(f'{step_type}_loss', loss, on_step=(step_type=='train'), on_epoch=True, prog_bar=True)
             self.log(f'{step_type}_acc', acc, on_step=(step_type=='train'), on_epoch=True, prog_bar=True)
-            
+
             if step_type == 'train' and batch_idx % 100 == 0:
                 # logger.debug(f"Batch {batch_idx}: {step_type}_loss={loss:.4f}, {step_type}_acc={acc:.4f}")
                 ...
-            
+
             return loss
         except Exception as e:
             logger.error(f"Error in {step_type}_step: {str(e)}")
@@ -116,7 +116,7 @@ class LLMDetector(pl.LightningModule):
     #         else:
     #             logger.error(f"Unsupported optimizer: {self.optimizer_name}")
     #             raise ValueError(f"Optimizer {self.optimizer_name} not supported")
-                
+
     #         return optimizer
     #     except Exception as e:
     #         logger.error(f"Failed to configure optimizer: {str(e)}")
@@ -125,7 +125,7 @@ class LLMDetector(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = AdamW(self.parameters(), lr=self.lr, weight_decay=0.01)
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            optimizer, 
+            optimizer,
             T_max=self.trainer.max_epochs,
             eta_min=self.lr * 0.01
         )
@@ -155,7 +155,7 @@ def main(cfg):
     logger.info(f"Loading tokenizer and model: {cfg.model.model_name}")
     tokenizer = AutoTokenizer.from_pretrained(cfg.model.model_name)
     model = LLMDetector(cfg)
-    
+
     # Model summary with parameter count by layer
     logger.info("Model architecture summary:")
     logger.info(model)
@@ -175,18 +175,18 @@ def main(cfg):
         return_attention_mask=True, # Returns a mask identifying real tokens vs padding
         return_tensors='pt' # Returns PyTorch tensors
     )
-    
+
     with torch.no_grad():  # Add no_grad for inference
         input_ids = encoding['input_ids']
         attention_mask = encoding['attention_mask']
-        
+
         logger.debug(f"Input IDs shape: {input_ids.shape}")
         logger.debug(f"Attention mask shape: {attention_mask.shape}")
-        
+
         output = model(input_ids, attention_mask)
         logger.debug(f"Output shape: {output.shape}")
         logger.debug(f"Output (logits): {output}")
-        
+
         prediction = torch.argmax(output, dim=1)
         logger.info(f"Prediction: {prediction.item()} (0: Human, 1: AI)")
         logger.info("Model testing completed")

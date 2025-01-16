@@ -67,7 +67,7 @@ def load_data(cfg):
 
     logger.info(f"Successfully loaded {len(texts)} samples")
     logger.debug(f"Label distribution: {pd.Series(labels).value_counts().to_dict()}")
-    
+
     # First split: separate test set
     train_val_texts, test_texts, train_val_labels, test_labels = train_test_split(
         texts, labels,
@@ -75,7 +75,7 @@ def load_data(cfg):
         random_state=cfg.seed,
         stratify=labels  # Maintain label distribution
     )
-    
+
     # Second split: separate train and validation
     train_texts, val_texts, train_labels, val_labels = train_test_split(
         train_val_texts, train_val_labels,
@@ -83,7 +83,7 @@ def load_data(cfg):
         random_state=cfg.seed,
         stratify=train_val_labels  # Maintain label distribution
     )
-    
+
     logger.info(f"Split data: {len(train_texts)} training, {len(val_texts)} validation, {len(test_texts)} test samples")
     return train_texts, val_texts, test_texts, train_labels, val_labels, test_labels
 
@@ -96,25 +96,25 @@ def train(cfg):
     # Set random seeds
     pl.seed_everything(cfg.seed)
     logger.info(f"Set random seed to {cfg.seed}")
-    
+
     # Load tokenizer
     logger.info(f"Loading tokenizer: {cfg.model.model_name}")
     tokenizer = tokenizer = AutoTokenizer.from_pretrained(cfg.model.model_name)
-    
+
     # Load and split data
     train_texts, val_texts, test_texts, train_labels, val_labels, test_labels = load_data(cfg)
-    
+
     # Create datasets
     logger.info("Creating datasets")
     train_dataset = LLMDataset(
-        train_texts, 
-        train_labels, 
+        train_texts,
+        train_labels,
         tokenizer,
         max_length=cfg.data.max_length
     )
     val_dataset = LLMDataset(
-        val_texts, 
-        val_labels, 
+        val_texts,
+        val_labels,
         tokenizer,
         max_length=cfg.data.max_length
     )
@@ -124,7 +124,7 @@ def train(cfg):
         tokenizer,
         max_length=cfg.data.max_length
     )
-    
+
     # Create dataloaders
     logger.info("Initializing dataloaders")
     train_loader = DataLoader(
@@ -151,14 +151,14 @@ def train(cfg):
         persistent_workers=True,
         pin_memory=True,
     )
-    
+
     # Initialize model
     logger.info("Initializing model")
     model = LLMDetector(cfg)
-    
+
     # Setup callbacks
     callbacks = []
-    
+
     # Checkpoint callback
     if cfg.training.save_checkpoints:
         checkpoint_callback = ModelCheckpoint(
@@ -170,7 +170,7 @@ def train(cfg):
         )
         callbacks.append(checkpoint_callback)
         logger.info("Added checkpoint callback")
-    
+
     # Early stopping callback
     if cfg.training.early_stopping:
         early_stopping_callback = EarlyStopping(
@@ -180,7 +180,7 @@ def train(cfg):
         )
         callbacks.append(early_stopping_callback)
         logger.info(f"Added early stopping callback with patience {cfg.training.patience}")
-    
+
     # Initialize logger
     logger_wandb = None
     if cfg.wandb.use_wandb:
@@ -195,7 +195,7 @@ def train(cfg):
             }
         )
         logger.info("Initialized W&B logger")
-    
+
     # Get the path to the hydra output directory
     hydra_path = hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
     logger.add(os.path.join(hydra_path, "train.log"))
@@ -206,7 +206,7 @@ def train(cfg):
     # logger.warning("Everything works but there is something to be aware of.")
     # logger.error("There's been a mistake with the process.")
     # logger.critical("There is something terribly wrong and process may terminate.")
-    
+
     # Initialize trainer
     trainer = pl.Trainer(
         max_epochs=cfg.training.max_epochs,
@@ -226,7 +226,7 @@ def train(cfg):
     )
 
     logger.info(f"Using device: {trainer.strategy.root_device}")
-    
+
     # Train model
     logger.info("Starting model training")
     trainer.fit(
@@ -239,7 +239,7 @@ def train(cfg):
     # Test the model
     logger.info("Starting model testing")
     test_results = trainer.test(model=model, dataloaders=test_loader)
-    
+
     # Log test results
     logger.info(f"Test Results: {test_results}")
     if cfg.wandb.use_wandb and logger_wandb:
@@ -247,7 +247,7 @@ def train(cfg):
             "test_loss": test_results[0]["test_loss"],
             "test_acc": test_results[0]["test_acc"]
         })
-    
+
     # Save final model if needed
     if cfg.training.save_model:
         save_path = f"models/{cfg.model.save_model_name}"
