@@ -30,5 +30,6 @@ jobs:
         run: ruff format .
       - name: Mypy check
         run: |
+          mypy src/ --config-file pyproject.toml
           mypy --install-types --non-interactive
           mypy src/ --config-file pyproject.toml
