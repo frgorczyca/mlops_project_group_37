@@ -184,3 +184,7 @@ data/processed/*
 !data/processed/.gitkeep
 
 devcontainer/
+
+# Checkpoints (for now), but keep the folder
+lightning_logs/*
+!lightning_logs/.gitkeep

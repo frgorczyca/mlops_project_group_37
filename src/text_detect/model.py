@@ -102,6 +102,7 @@ class LLMDetector(pl.LightningModule):
 
 @hydra.main(version_base=None, config_path="../../configs", config_name="config")
 def main(cfg):
+    
     # Create tokenizer and model
     tokenizer = AutoTokenizer.from_pretrained(cfg.model.model_name)
     model = LLMDetector(cfg)
