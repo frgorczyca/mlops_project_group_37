@@ -27,6 +27,7 @@ training:
   max_epochs: 10
   precision: "16-mixed"  # Currently unused # for mixed precision training
   num_workers: 8
+
   # Callbacks
   save_checkpoints: false
   save_top_k: 3
