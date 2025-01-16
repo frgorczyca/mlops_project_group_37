@@ -6,6 +6,14 @@ The data we have used is the kaggle dataset "DAIGT Proper Train Dataset" (https:
 
 ## How to use
 
+To deploy in a docker container it is compulsory to download Docker-Desktop for your operating system.
+
+Upon installation, run on terminal:
+
+invoke docker-build
+
+whihc will trigger training and evaluation of the ml model.
+
 To-be-updated
 
 ## Project structure

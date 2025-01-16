@@ -4,7 +4,20 @@ import typer
 from torch.utils.data import Dataset
 import shutil
 import csv
+import pandas as pd
+import numpy as np
+import os
 
+#Read 
+def load_csv_to_dataframe(file_path: Path):
+    try:
+        df=pd.read_csv(file_path)
+        print("DataFrame loaded successfully. Here is a preview: ")
+        print(df.head())
+        return df
+    except Exception as e:
+        print(f"Error loading CSV file: {e}")
+        return None
 
 class DatasetManager(Dataset):
     """My custom dataset."""
@@ -26,23 +39,19 @@ class DatasetManager(Dataset):
             for i, row in enumerate(reader):
                 if i == index:
                     return row
-
-    def preprocess(self, output_folder: Path) -> None:
-        """Preprocess the raw data and save it to the output folder."""
-        print("Preprocessing data...")
-        # Implement the preprocessing logic here
-        # Save the preprocessed data to the output folder
-        for item in self.data_path.iterdir():
-            if item.is_file():
-                shutil.copy(item, output_folder / item.name)
-
-        self.get_version(output_folder)
-
-    def get_version(self, output_folder: Path, version: str = "latest") -> None:
-        if version == "latest":
+    def get_version(self, input_folder: Path, version: int | str = "latest") -> None:
+        """Get a specific version of the dataset: either int or latest"""
+        if isinstance(version, int):
+            version_str=str(version)
+            for file_name in os.listdir(input_folder):
+                if version_str in file_name:
+                    return os.path.join(input_folder, file_name)
+            
+        
+        elif version == "latest":
             highest_number = -1
             highest_file = None
-            for item in output_folder.iterdir():
+            for item in input_folder.iterdir():
                 if item.is_file():
                     try:
                         number = int(item.stem.split('_')[-1])
@@ -51,25 +60,39 @@ class DatasetManager(Dataset):
                             highest_file = item
                     except ValueError:
                         continue
-
+        
             if highest_file:
                 print(f"File with the highest number in the name: {highest_file}")
+                return highest_file
             else:
                 print("No files found in the output folder")
                 return
             
-            self.data_path = output_folder / highest_file.name
+            self.data_path = input_folder / highest_file.name
         else:
-            self.data_path = output_folder / f"data_{version}.csv"
+            self.data_path = input_folder / f"data_{version}.csv"
+            
+    def preprocess(self, version, output_folder: Path) -> None:
+        """Preprocess the raw data and save it to the output folder."""
+        print("Preprocessing data...")
+        shutil.copy(version, output_folder )
+
+        self.get_version(output_folder)
 
 
-def preprocess(raw_data_path: Path, output_folder: Path) -> None:
+
+
+def preprocess(raw_data_path: Path, output_folder: Path, version: str | int = "latest") -> None:
     print("Creating an instance of dataset")
     dataset = DatasetManager(raw_data_path)
-    dataset.preprocess(output_folder)
-    dataset.get_version(output_folder)
+    file_version = dataset.get_version(raw_data_path,version)
+    dataset.preprocess(file_version, output_folder)
+    
+    print()
 
 
 if __name__ == "__main__":
     #typer.run(preprocess)
-    preprocess(Path("data/raw"), Path("data/processed"))
+    preprocess(Path("data/raw"), Path("data/processed"), 2)
+
+load_csv_to_dataframe("C:/Users/arttu/Desktop/mlops/final_project/mlops_project_group_37/data/raw/train_drcat_04.csv")

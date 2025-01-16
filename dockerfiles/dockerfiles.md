@@ -23,3 +23,7 @@ we mount the volume and run the image in a docker container:
 - docker run --name {container_name} -v %cd%/models:/models/ train:latest
 
 Note that the above command should be adjusted with the paths of the files/folders to be saved from and to.
+
+# Easier with invoke
+
+Run docker build to achieve all these
