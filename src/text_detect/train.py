@@ -14,6 +14,7 @@ import pandas as pd
 from text_detect.model import LLMDetector
 
 from loguru import logger
+from omegaconf import OmegaConf
 #this is a comment
 
 class LLMDataset(Dataset):
