@@ -6,8 +6,7 @@ import shutil
 import csv
 import pandas as pd
 import torch
-import os
-from transformers import AutoTokenizer
+
 
 from loguru import logger
 from sklearn.model_selection import train_test_split
