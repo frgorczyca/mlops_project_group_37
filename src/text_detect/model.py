@@ -7,6 +7,8 @@ from transformers import AutoModel, AutoTokenizer
 from torch.optim import Adam, AdamW, SGD
 from torchmetrics import Accuracy, Precision, Recall, F1Score, AUROC
 from loguru import logger
+from pytorch_lightning.loggers import WandbLogger
+import wandb
 
 
 class LLMDetector(pl.LightningModule):
@@ -36,34 +38,6 @@ class LLMDetector(pl.LightningModule):
         self.classifier = nn.Linear(self.transformer.config.hidden_size, cfg.data.num_classes)
         logger.info(f"Initialized classifier with {cfg.data.num_classes} classes")
 
-        # Initialize metrics with compute_on_step=False for better performance
-        logger.debug("Initializing metrics")
-        self.train_accuracy = Accuracy(task="multiclass", num_classes=cfg.data.num_classes)
-        self.val_accuracy = Accuracy(task="multiclass", num_classes=cfg.data.num_classes)
-        self.test_accuracy = Accuracy(task="multiclass", num_classes=cfg.data.num_classes)
-
-        #Additional metrics to track: precision, recall, F1 Score and AUROC 
-        self.train_precision = Precision(task="multiclass", num_classes=cfg.model.num_classes)
-        self.train_recall = Recall(task="multiclass", num_classes=cfg.model.num_classes)
-        self.train_f1 = F1Score(task="multiclass", num_classes=cfg.model.num_classes)
-
-        self.val_precision = Precision(task="multiclass", num_classes=cfg.model.num_classes)
-        self.val_recall = Recall(task="multiclass", num_classes=cfg.model.num_classes)
-        self.val_f1 = F1Score(task="multiclass", num_classes=cfg.model.num_classes)
-        
-        self.test_precision = Precision(task="binary" or "multiclass", num_classes=cfg.model.num_classes)
-        self.test_recall = Recall(task="binary" or "multiclass", num_classes=cfg.model.num_classes)
-        self.test_f1 = F1Score(task="binary" or "multiclass", num_classes=cfg.model.num_classes)
-        self.test_accuracy = Accuracy(task="binary" or "multiclass", num_classes=cfg.model.num_classes)
-        
-
-
-        # AUROC for binary classification: set task="binary" if your labels are [0, 1].
-        # If "multiclass" with 2 classes, specify that.
-        self.train_auroc = AUROC(task="binary")
-        self.val_auroc = AUROC(task="binary")
-        self.test_auroc = AUROC(task="binary")
-        
         # Store training parameters
         self.optimizer_name = cfg.optimizer.type
         self.lr = cfg.optimizer.lr
@@ -80,6 +54,36 @@ class LLMDetector(pl.LightningModule):
         self.criterion = nn.CrossEntropyLoss(label_smoothing=cfg.training.get("label_smoothing", 0.0))
         logger.debug(f"Using CrossEntropyLoss with label_smoothing={cfg.training.get('label_smoothing', 0.0)}")
 
+        # Initialize metrics with compute_on_step=False for better performance
+        logger.debug("Initializing metrics")
+        self.train_accuracy = Accuracy(task="multiclass", num_classes=cfg.data.num_classes)
+        self.val_accuracy = Accuracy(task="multiclass", num_classes=cfg.data.num_classes)
+        self.test_accuracy = Accuracy(task="multiclass", num_classes=cfg.data.num_classes)
+
+        #Additional metrics to track: precision, recall, F1 Score and AUROC 
+        self.train_precision = Precision(task="multiclass", num_classes=cfg.data.num_classes)
+        self.train_recall = Recall(task="multiclass", num_classes=cfg.data.num_classes)
+        self.train_f1 = F1Score(task="multiclass", num_classes=cfg.data.num_classes)
+
+        self.val_precision = Precision(task="multiclass", num_classes=cfg.data.num_classes)
+        self.val_recall = Recall(task="multiclass", num_classes=cfg.data.num_classes)
+        self.val_f1 = F1Score(task="multiclass", num_classes=cfg.data.num_classes)
+        
+        self.test_precision = Precision(task="binary" or "multiclass", num_classes=cfg.data.num_classes)
+        self.test_recall = Recall(task="binary" or "multiclass", num_classes=cfg.data.num_classes)
+        self.test_f1 = F1Score(task="binary" or "multiclass", num_classes=cfg.data.num_classes)
+        self.test_accuracy = Accuracy(task="binary" or "multiclass", num_classes=cfg.data.num_classes)
+        
+        # AUROC for binary classification: set task="binary" if your labels are [0, 1].
+        # If "multiclass" with 2 classes, specify that.
+        self.train_auroc = AUROC(task="binary")
+        self.val_auroc = AUROC(task="binary")
+        self.test_auroc = AUROC(task="binary")
+        
+        # Lists to store predictions and labels for epoch-end logging
+        self.val_step_outputs = []
+        self.test_step_outputs = []
+
     def forward(self, input_ids, attention_mask):
         """Optimized forward pass"""
         try:
@@ -90,57 +94,6 @@ class LLMDetector(pl.LightningModule):
         except Exception as e:
             logger.error(f"Forward pass failed: {str(e)}")
             raise
-
-    def _shared_step(self, batch, batch_idx, step_type="train"):
-        """Shared step for train/val/test to reduce code duplication"""
-        try:
-            input_ids = batch["input_ids"]
-            attention_mask = batch["attention_mask"]
-            labels = batch["labels"]
-
-            logits = self(input_ids, attention_mask)
-            loss = self.criterion(logits, labels)
-
-            # Calculate accuracy
-            preds = torch.argmax(logits, dim=1)
-            acc = getattr(self, f"{step_type}_accuracy")(preds, labels)
-            prec = getattr(self, f"{step_type}_precision")(preds, labels)
-            rec = getattr(self, f"{step_type}_recall")(preds, labels)
-            f1 = getattr(self, f"{step_type}_f1")(preds, labels)
-            
-            # AUROC typically requires raw probabilities or logits, so pass logits or softmax output
-            # For binary classification, you might do:
-            if self.cfg.model.num_classes == 2:
-                proba = torch.softmax(logits, dim=1)[:, 1]  # shape: (N,)
-                auroc_val = getattr(self, f"{step_type}_auroc")(proba, labels)
-            else:
-                # for multiclass, pass the entire logits or softmax
-                proba = torch.softmax(logits, dim=1)
-                auroc_val = getattr(self, f"{step_type}_auroc")(proba, labels)
-
-            self.log(f"{step_type}_acc", acc, on_step=(step_type=="train"), on_epoch=True, prog_bar=True)
-            self.log(f"{step_type}_loss", loss, on_step=(step_type=="train"), on_epoch=True, prog_bar=True)
-            self.log(f"{step_type}_prec", prec, on_step=(step_type=="train"), on_epoch=True, prog_bar=True)
-            self.log(f"{step_type}_rec", rec, on_step=(step_type=="train"), on_epoch=True, prog_bar=True)
-            self.log(f"{step_type}_f1", f1, on_step=(step_type=="train"), on_epoch=True, prog_bar=True)
-            self.log(f"{step_type}_auroc", auroc_val, on_step=(step_type=="train"), on_epoch=True, prog_bar=True)
-            if step_type == "train" and batch_idx % 100 == 0:
-                # logger.debug(f"Batch {batch_idx}: {step_type}_loss={loss:.4f}, {step_type}_acc={acc:.4f}")
-                ...
-
-            return loss
-        except Exception as e:
-            logger.error(f"Error in {step_type}_step: {str(e)}")
-            raise e
-
-    def training_step(self, batch, batch_idx):
-        return self._shared_step(batch, batch_idx, "train")
-
-    def validation_step(self, batch, batch_idx):
-        return self._shared_step(batch, batch_idx, "val")
-
-    def test_step(self, batch, batch_idx):
-        return self._shared_step(batch, batch_idx, "test")
 
     def configure_optimizers(self):
         """Configure optimizer based on config file"""
@@ -161,6 +114,67 @@ class LLMDetector(pl.LightningModule):
             logger.error(f"Failed to configure optimizer: {str(e)}")
             raise
 
+    def _shared_step(self, batch, batch_idx, step_type):
+        """Shared step for train/val/test to reduce code duplication"""
+        try:
+            input_ids = batch["input_ids"]
+            attention_mask = batch["attention_mask"]
+            labels = batch["labels"]
+
+            logits = self(input_ids, attention_mask)
+            loss = self.criterion(logits, labels)
+
+            # Calculate accuracy
+            preds = torch.argmax(logits, dim=1)
+            acc = getattr(self, f"{step_type}_accuracy")(preds, labels)
+            prec = getattr(self, f"{step_type}_precision")(preds, labels)
+            rec = getattr(self, f"{step_type}_recall")(preds, labels)
+            f1 = getattr(self, f"{step_type}_f1")(preds, labels)
+            
+            # AUROC typically requires raw probabilities or logits, so pass logits or softmax output
+            # For binary classification, you might do:
+            if self.cfg.data.num_classes == 2:
+                proba = torch.softmax(logits, dim=1)[:, 1]  # shape: (N,)
+                auroc_val = getattr(self, f"{step_type}_auroc")(proba, labels)
+            else:
+                # for multiclass, pass the entire logits or softmax
+                proba = torch.softmax(logits, dim=1)
+                auroc_val = getattr(self, f"{step_type}_auroc")(proba, labels)
+
+            self.log(f"{step_type}_acc", acc, on_step=(step_type=="train"), on_epoch=True, prog_bar=True)
+            self.log(f"{step_type}_loss", loss, on_step=(step_type=="train"), on_epoch=True, prog_bar=True)
+            self.log(f"{step_type}_prec", prec, on_step=(step_type=="train"), on_epoch=True, prog_bar=True)
+            self.log(f"{step_type}_rec", rec, on_step=(step_type=="train"), on_epoch=True, prog_bar=True)
+            self.log(f"{step_type}_f1", f1, on_step=(step_type=="train"), on_epoch=True, prog_bar=True)
+            self.log(f"{step_type}_auroc", auroc_val, on_step=(step_type=="train"), on_epoch=True, prog_bar=True)
+
+            # Store predictions and labels for confusion matrix if not training
+            if step_type in ["val", "test"]:
+                output = {
+                    "preds": preds,
+                    "labels": labels,
+                    "probs": torch.softmax(logits, dim=1)
+                }
+                if step_type == "val":
+                    self.val_step_outputs.append(output)
+                else:
+                    self.test_step_outputs.append(output)
+
+            return loss
+        
+        except Exception as e:
+            logger.error(f"Error in {step_type}_step: {str(e)}")
+            raise e
+
+    def training_step(self, batch, batch_idx):
+        return self._shared_step(batch, batch_idx, step_type="train")
+
+    def validation_step(self, batch, batch_idx):
+        return self._shared_step(batch, batch_idx, step_type="val")
+
+    def test_step(self, batch, batch_idx):
+        return self._shared_step(batch, batch_idx, step_type="test")
+
     def predict_step(self, batch, batch_idx):
         try:
             input_ids = batch["input_ids"]
@@ -169,6 +183,62 @@ class LLMDetector(pl.LightningModule):
         except Exception as e:
             logger.error(f"Prediction failed: {str(e)}")
             raise
+
+    def on_validation_epoch_end(self):
+        """Log confusion matrix at the end of validation epoch"""
+        if not isinstance(self.logger, WandbLogger):
+            return
+            
+        # Concatenate all predictions and labels
+        all_preds = torch.cat([x["preds"] for x in self.val_step_outputs])
+        all_labels = torch.cat([x["labels"] for x in self.val_step_outputs])
+        all_probs = torch.cat([x["probs"] for x in self.val_step_outputs])
+        
+        # Log to W&B
+        self.logger.experiment.log({
+            "val_confusion_matrix": wandb.plot.confusion_matrix(
+                probs=None,
+                y_true=all_labels.cpu().numpy(),
+                preds=all_preds.cpu().numpy(),
+                class_names=["Human", "AI"]  # Adjust based on your classes
+            ),
+            "val_pr_curve": wandb.plot.pr_curve(
+                all_labels.cpu().numpy(),
+                all_probs.cpu().numpy(),
+                labels=["Human", "AI"]  # Adjust based on your classes
+            )
+        })
+        
+        # Clear saved outputs
+        self.val_step_outputs.clear()
+
+    def on_test_epoch_end(self):
+        """Log confusion matrix at the end of test epoch"""
+        if not isinstance(self.logger, WandbLogger):
+            return
+            
+        # Concatenate all predictions and labels
+        all_preds = torch.cat([x["preds"] for x in self.test_step_outputs])
+        all_labels = torch.cat([x["labels"] for x in self.test_step_outputs])
+        all_probs = torch.cat([x["probs"] for x in self.test_step_outputs])
+        
+        # Log to W&B
+        self.logger.experiment.log({
+            "test_confusion_matrix": wandb.plot.confusion_matrix(
+                probs=None,
+                y_true=all_labels.cpu().numpy(),
+                preds=all_preds.cpu().numpy(),
+                class_names=["Human", "AI"]  # Adjust based on your classes
+            ),
+            "test_pr_curve": wandb.plot.pr_curve(
+                all_labels.cpu().numpy(),
+                all_probs.cpu().numpy(),
+                labels=["Human", "AI"]  # Adjust based on your classes
+            )
+        })
+        
+        # Clear saved outputs
+        self.test_step_outputs.clear()
 
 
 @hydra.main(version_base="1.1", config_path="../../configs", config_name="default")

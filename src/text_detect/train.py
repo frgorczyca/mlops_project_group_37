@@ -3,6 +3,7 @@ import hydra
 import torch
 import pytorch_lightning as pl
 import wandb
+import sys
 
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 from pytorch_lightning.loggers import WandbLogger
@@ -15,7 +16,7 @@ from text_detect.model import LLMDetector
 
 from loguru import logger
 from omegaconf import OmegaConf
-#this is a comment
+
 
 class LLMDataset(Dataset):
     def __init__(self, texts, labels, tokenizer, max_length):
@@ -180,22 +181,23 @@ def train(cfg):
 
     logger.info(f"Callbacks: {callbacks}")
 
-    config_dict = OmegaConf.to_container(cfg, resolve=True)#cconverting the hydra config file in a JSON-serializable dictionaty.
+
     # Initialize Weights & Biases logger
-    logger_wandb = False
     if cfg.wandb.use_wandb:
+        run_name = f"{cfg.model.transformer_name}-lr{cfg.optimizer.lr}-bs{cfg.training.batch_size}-{cfg.optimizer.type}"
         # Optionally, if you want to log in programmatically (e.g. from a secret file or environment variable):
         # wandb.login(key=os.getenv("WANDB_API_KEY", "<fallback-or-raise-error>"))
         logger_wandb = WandbLogger(
             project=cfg.wandb.project_name,
-            name=f"lr={cfg.optimizer.lr}-bs={cfg.training.batch_size}",
+            name=run_name,
             save_dir=cfg.training.output_dir,
             job_type="train",
             tags=["training"],
-            config=config_dict,
+            config=OmegaConf.to_container(cfg, resolve=True), # Converting the hydra config file in a JSON-serializable dictionaty.
         )
         logger.info("Initialized W&B logger")
     else:
+        logger_wandb = False
         logger.warning("W&B logging disabled")
 
 
@@ -225,6 +227,17 @@ def train(cfg):
     )
     logger.success("Training completed successfully")
 
+    if cfg.wandb.use_wandb:
+        wandb.run.summary.update({
+            "model_architecture": str(model),
+            "total_parameters": sum(p.numel() for p in model.parameters()),
+            "trainable_parameters": sum(p.numel() for p in model.parameters() if p.requires_grad),
+            "train_samples": len(train_texts),
+            "val_samples": len(val_texts),
+            "python_version": sys.version,
+            "pytorch_version": torch.__version__,
+        })
+
     model_path = os.path.join(cfg.training.output_dir, cfg.training.model_name)
 
     # Save final model if needed
@@ -235,7 +248,7 @@ def train(cfg):
         logger.warning("Model not saved")
 
     # Save model as W&B artifact
-    if cfg.wandb.save_artifact and logger_wandb:
+    if cfg.wandb.save_artifact and cfg.wandb.use_wandb:
         artifact = wandb.Artifact(
             name=f"{cfg.wandb.run_name}-model",
             type="model",
