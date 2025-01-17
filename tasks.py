@@ -4,7 +4,7 @@ from invoke import Context, task
 
 WINDOWS = os.name == "nt"
 PROJECT_NAME = "text_detect"
-PYTHON_VERSION = "3.11"
+PYTHON_VERSION = "3.8"
 
 
 # Setup commands
