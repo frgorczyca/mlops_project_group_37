@@ -22,7 +22,9 @@ data:
   num_workers: 8
   max_length: 512
   test_size: 0.2 # Currently unused
-  path: "data/processed/train_drcat_04.csv" # Path to processed data
+  latest_version_dataset_path: "data/processed/train_drcat_04.csv" # Path to processed data
+  raw_data_path: "data/raw/" # Path to raw data
+  processed_data_path: "data/processed/" # Path to processed data
 
 # Training configuration
 training:
@@ -42,6 +44,6 @@ training:
 # Logging configuration
 wandb:
   use_wandb: False  # Set to True to enable Weights & Biases logging
-  save_artifact: False 
+  save_artifact: False
   project_name: "text-detect"
   run_name: "test-run"

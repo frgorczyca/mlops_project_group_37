@@ -7,13 +7,14 @@ import wandb
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 from pytorch_lightning.loggers import WandbLogger
 from transformers import AutoTokenizer
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 from sklearn.model_selection import train_test_split
 import pandas as pd
 
 from text_detect.model import LLMDetector
 
 from loguru import logger
+from data import DatasetManager
 
 
 class LLMDataset(Dataset):
@@ -52,7 +53,7 @@ def load_data(cfg):
     logger.info(f"Loading data from {cfg.data.path}")
     logger.debug(f"CWD: {os.getcwd()}")
 
-    data = pd.read_csv(cfg.data.path)
+    data = pd.read_csv(cfg.data.latest_data_path)
     texts = data["text"].values
     labels = data["label"].values
 
@@ -113,46 +114,14 @@ def train(cfg):
 
     # Load and split data
     logger.info("Loading data")
-    train_texts, val_texts, test_texts, train_labels, val_labels, test_labels = load_data(cfg)
 
-    # Create datasets
-    logger.info("Creating datasets")
-    train_dataset = LLMDataset(train_texts, train_labels, tokenizer, max_length=cfg.data.max_length)
-    val_dataset = LLMDataset(val_texts, val_labels, tokenizer, max_length=cfg.data.max_length)
-    test_dataset = LLMDataset(test_texts, test_labels, tokenizer, max_length=cfg.data.max_length)
-
-    # Create dataloaders
-    logger.info("Initializing dataloaders")
-    train_loader = DataLoader(
-        train_dataset,
-        batch_size=cfg.training.batch_size,
-        shuffle=True,
-        num_workers=cfg.training.num_workers,
-        persistent_workers=True,
-        pin_memory=True,
-    )
-    val_loader = DataLoader(
-        val_dataset,
-        batch_size=cfg.training.batch_size,
-        shuffle=False,
-        num_workers=cfg.training.num_workers,
-        persistent_workers=True,
-        pin_memory=True,
-    )
-    test_loader = DataLoader(
-        test_dataset,
-        batch_size=cfg.training.batch_size,
-        shuffle=False,
-        num_workers=cfg.training.num_workers,
-        persistent_workers=True,
-        pin_memory=True,
-    )
-
+    dataset_manager = DatasetManager(cfg.data.raw_data_path, cfg.data.processed_data_path)
+    dataset_manager.set_version("latest")
+    train_loader, val_loader, test_loader = dataset_manager.create_dataloader_from_set(tokenizer, cfg)
 
     # Initialize model
     logger.info("Initializing model")
     model = LLMDetector(cfg)
-
 
     # Setup callbacks
     callbacks = []
