@@ -5,7 +5,7 @@ import pytorch_lightning as pl
 
 from transformers import AutoModel, AutoTokenizer
 from torch.optim import Adam, AdamW, SGD
-from torchmetrics import Accuracy, Precision, Recall, F1Score, AUROC, ConfusionMatrix
+from torchmetrics import Accuracy, Precision, Recall, F1Score, AUROC
 from loguru import logger
 
 
@@ -42,7 +42,7 @@ class LLMDetector(pl.LightningModule):
         self.val_accuracy = Accuracy(task="multiclass", num_classes=cfg.model.num_classes)
         self.test_accuracy = Accuracy(task="multiclass", num_classes=cfg.model.num_classes)
 
-        #Additional metrics to track: orecision, recall, F1 Score and AUROC 
+        #Additional metrics to track: precision, recall, F1 Score and AUROC 
         self.train_precision = Precision(task="multiclass", num_classes=cfg.model.num_classes)
         self.train_recall = Recall(task="multiclass", num_classes=cfg.model.num_classes)
         self.train_f1 = F1Score(task="multiclass", num_classes=cfg.model.num_classes)
