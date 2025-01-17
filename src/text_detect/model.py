@@ -5,7 +5,7 @@ import pytorch_lightning as pl
 
 from transformers import AutoModel, AutoTokenizer
 from torch.optim import Adam, AdamW, SGD
-from torchmetrics import Accuracy, Precision, Recall, F1Score, AUROC, ConfusionMatrix
+from torchmetrics import Accuracy, Precision, Recall, F1Score, AUROC
 from loguru import logger
 from pytorch_lightning.loggers import WandbLogger
 import wandb
@@ -79,10 +79,6 @@ class LLMDetector(pl.LightningModule):
         self.train_auroc = AUROC(task="binary")
         self.val_auroc = AUROC(task="binary")
         self.test_auroc = AUROC(task="binary")
-
-        # Add confusion matrix metric
-        self.val_confmat = ConfusionMatrix(task="multiclass", num_classes=cfg.data.num_classes)
-        self.test_confmat = ConfusionMatrix(task="multiclass", num_classes=cfg.data.num_classes)
         
         # Lists to store predictions and labels for epoch-end logging
         self.val_step_outputs = []
@@ -198,9 +194,6 @@ class LLMDetector(pl.LightningModule):
         all_labels = torch.cat([x["labels"] for x in self.val_step_outputs])
         all_probs = torch.cat([x["probs"] for x in self.val_step_outputs])
         
-        # Calculate confusion matrix
-        conf_mat = self.val_confmat(all_preds, all_labels)
-        
         # Log to W&B
         self.logger.experiment.log({
             "val_confusion_matrix": wandb.plot.confusion_matrix(
@@ -228,9 +221,6 @@ class LLMDetector(pl.LightningModule):
         all_preds = torch.cat([x["preds"] for x in self.test_step_outputs])
         all_labels = torch.cat([x["labels"] for x in self.test_step_outputs])
         all_probs = torch.cat([x["probs"] for x in self.test_step_outputs])
-        
-        # Calculate confusion matrix
-        conf_mat = self.test_confmat(all_preds, all_labels)
         
         # Log to W&B
         self.logger.experiment.log({
