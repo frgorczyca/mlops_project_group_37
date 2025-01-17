@@ -14,10 +14,8 @@ import pandas as pd
 from text_detect.model import LLMDetector
 
 from loguru import logger
-
-#newly added
-#from dotenv import load_dotenv
 from omegaconf import OmegaConf
+#this is a comment
 
 class LLMDataset(Dataset):
     def __init__(self, texts, labels, tokenizer, max_length):
@@ -48,6 +46,12 @@ class LLMDataset(Dataset):
             "attention_mask": encoding["attention_mask"].flatten(),
             "labels": torch.tensor(label, dtype=torch.long),
         }
+    
+    def get_text(self, idx):
+        return self.texts[idx]
+    
+    def get_label(self, idx):
+        return self.labels[idx]
 
 
 def load_data(cfg):
@@ -64,27 +68,25 @@ def load_data(cfg):
 
     # First split: separate test set
     train_val_texts, test_texts, train_val_labels, test_labels = train_test_split(
-        texts,
-        labels,
-        test_size=0.2,  # 20% for test
+        texts, labels,
+        test_size=cfg.data.test_size,
         random_state=cfg.seed,
         stratify=labels,  # Maintain label distribution
     )
 
     # Second split: separate train and validation
     train_texts, val_texts, train_labels, val_labels = train_test_split(
-        train_val_texts,
-        train_val_labels,
-        test_size=0.2,  # 20% of remaining data for validation
+        train_val_texts, train_val_labels,
+        test_size=cfg.training.val_size,
         random_state=cfg.seed,
-        stratify=train_val_labels,  # Maintain label distribution
+        stratify=train_val_labels
     )
 
     logger.info(f"Split data: {len(train_texts)} training, {len(val_texts)} validation, {len(test_texts)} test samples")
     return train_texts, val_texts, test_texts, train_labels, val_labels, test_labels
 
 
-@hydra.main(version_base="1.1", config_path="../../configs", config_name="config")
+@hydra.main(version_base="1.1", config_path="../../configs", config_name="default")
 def train(cfg):
     # Get the path to the hydra output directory
     hydra_path = hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
@@ -95,12 +97,6 @@ def train(cfg):
         level="INFO",
         format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}"
     )
-    # logger options:
-    # logger.debug("Used for debugging your code.")
-    # logger.info("Informative messages from your code.")
-    # logger.warning("Everything works but there is something to be aware of.")
-    # logger.error("There's been a mistake with the process.")
-    # logger.critical("There is something terribly wrong and process may terminate.")
 
     logger.info("Starting training pipeline")
     logger.debug(f"Configuration: {cfg}")
@@ -110,10 +106,10 @@ def train(cfg):
     logger.info(f"Set random seed to {cfg.seed}")
 
     # Load tokenizer
-    logger.info(f"Loading tokenizer: {cfg.model.model_name}")
+    logger.info(f"Loading tokenizer: {cfg.model.transformer_name}")
     os.environ["TOKENIZERS_PARALLELISM"] = "false" # Set this environment variable before importing tokenizers
-    tokenizer = AutoTokenizer.from_pretrained(cfg.model.model_name)
-
+    tokenizer = AutoTokenizer.from_pretrained(cfg.model.transformer_name)
+    
     # Load and split data
     logger.info("Loading data")
     train_texts, val_texts, test_texts, train_labels, val_labels, test_labels = load_data(cfg)

@@ -1,0 +1,7 @@
+# configs/data/default.yaml
+num_classes: 2 # Number of classification classes
+test_size: 0.2 # 20% of original dataset size
+max_length: 512 # Maximum number of tokens the tokenizer will process
+path: "data/processed/train_drcat_04.csv" # Path to processed data
+
+# Dataset source: https://www.kaggle.com/datasets/thedrcat/daigt-proper-train-dataset

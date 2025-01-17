@@ -36,7 +36,8 @@ def dev_requirements(ctx: Context) -> None:
 @task
 def download_data(ctx: Context) -> None:
     """Download data from Kaggle."""
-    ctx.run("sh downloadKaggleDataset.sh", echo=True, pty=not WINDOWS)
+    ctx.run("sh data/downloadKaggleDataset.sh", echo=True, pty=not WINDOWS)
+
 
 
 # Project commands
