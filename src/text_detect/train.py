@@ -16,13 +16,6 @@ from text_detect.model import LLMDetector
 from loguru import logger
 #this is a comment
 
-<<<<<<< HEAD
-=======
-#newly added
-#from dotenv import load_dotenv
-from omegaconf import OmegaConf
-
->>>>>>> 5aeb13e (wandb added login metrics for train, test, val - added sweep function… (#20))
 class LLMDataset(Dataset):
     def __init__(self, texts, labels, tokenizer, max_length):
         self.texts = texts
