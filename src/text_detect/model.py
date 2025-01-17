@@ -5,8 +5,7 @@ import pytorch_lightning as pl
 
 from transformers import AutoModel, AutoTokenizer
 from torch.optim import Adam, AdamW, SGD
-from torchmetrics import Accuracy
-
+from torchmetrics import Accuracy, Precision, Recall, F1Score, AUROC
 from loguru import logger
 
 
@@ -17,6 +16,7 @@ class LLMDetector(pl.LightningModule):
 
     def __init__(self, cfg):
         super().__init__()
+        self.cfg=cfg
         logger.info("Initializing LLMDetector model")
 
         # Save hyperparameters to the checkpoint
@@ -42,6 +42,28 @@ class LLMDetector(pl.LightningModule):
         self.val_accuracy = Accuracy(task="multiclass", num_classes=cfg.model.num_classes)
         self.test_accuracy = Accuracy(task="multiclass", num_classes=cfg.model.num_classes)
 
+        #Additional metrics to track: precision, recall, F1 Score and AUROC 
+        self.train_precision = Precision(task="multiclass", num_classes=cfg.model.num_classes)
+        self.train_recall = Recall(task="multiclass", num_classes=cfg.model.num_classes)
+        self.train_f1 = F1Score(task="multiclass", num_classes=cfg.model.num_classes)
+
+        self.val_precision = Precision(task="multiclass", num_classes=cfg.model.num_classes)
+        self.val_recall = Recall(task="multiclass", num_classes=cfg.model.num_classes)
+        self.val_f1 = F1Score(task="multiclass", num_classes=cfg.model.num_classes)
+        
+        self.test_precision = Precision(task="binary" or "multiclass", num_classes=cfg.model.num_classes)
+        self.test_recall = Recall(task="binary" or "multiclass", num_classes=cfg.model.num_classes)
+        self.test_f1 = F1Score(task="binary" or "multiclass", num_classes=cfg.model.num_classes)
+        self.test_accuracy = Accuracy(task="binary" or "multiclass", num_classes=cfg.model.num_classes)
+        
+
+
+        # AUROC for binary classification: set task="binary" if your labels are [0, 1].
+        # If "multiclass" with 2 classes, specify that.
+        self.train_auroc = AUROC(task="binary")
+        self.val_auroc = AUROC(task="binary")
+        self.test_auroc = AUROC(task="binary")
+        
         # Store training parameters
         self.optimizer_name = cfg.optimizer.type
         self.lr = cfg.optimizer.lr
@@ -75,11 +97,26 @@ class LLMDetector(pl.LightningModule):
             # Calculate accuracy
             preds = torch.argmax(logits, dim=1)
             acc = getattr(self, f"{step_type}_accuracy")(preds, labels)
+            prec = getattr(self, f"{step_type}_precision")(preds, labels)
+            rec = getattr(self, f"{step_type}_recall")(preds, labels)
+            f1 = getattr(self, f"{step_type}_f1")(preds, labels)
+            
+            # AUROC typically requires raw probabilities or logits, so pass logits or softmax output
+            # For binary classification, you might do:
+            if self.cfg.model.num_classes == 2:
+                proba = torch.softmax(logits, dim=1)[:, 1]  # shape: (N,)
+                auroc_val = getattr(self, f"{step_type}_auroc")(proba, labels)
+            else:
+                # for multiclass, pass the entire logits or softmax
+                proba = torch.softmax(logits, dim=1)
+                auroc_val = getattr(self, f"{step_type}_auroc")(proba, labels)
 
-            # Log metrics
-            self.log(f"{step_type}_loss", loss, on_step=(step_type == "train"), on_epoch=True, prog_bar=True)
-            self.log(f"{step_type}_acc", acc, on_step=(step_type == "train"), on_epoch=True, prog_bar=True)
-
+            self.log(f"{step_type}_acc", acc, on_step=(step_type=="train"), on_epoch=True, prog_bar=True)
+            self.log(f"{step_type}_loss", loss, on_step=(step_type=="train"), on_epoch=True, prog_bar=True)
+            self.log(f"{step_type}_prec", prec, on_step=(step_type=="train"), on_epoch=True, prog_bar=True)
+            self.log(f"{step_type}_rec", rec, on_step=(step_type=="train"), on_epoch=True, prog_bar=True)
+            self.log(f"{step_type}_f1", f1, on_step=(step_type=="train"), on_epoch=True, prog_bar=True)
+            self.log(f"{step_type}_auroc", auroc_val, on_step=(step_type=="train"), on_epoch=True, prog_bar=True)
             if step_type == "train" and batch_idx % 100 == 0:
                 # logger.debug(f"Batch {batch_idx}: {step_type}_loss={loss:.4f}, {step_type}_acc={acc:.4f}")
                 ...

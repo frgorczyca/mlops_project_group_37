@@ -41,7 +41,7 @@ training:
 
 # Logging configuration
 wandb:
-  use_wandb: False  # Set to True to enable Weights & Biases logging
-  save_artifact: False 
+  use_wandb: True  # Set to True to enable Weights & Biases logging
+  save_artifact: True 
   project_name: "text-detect"
   run_name: "test-run"

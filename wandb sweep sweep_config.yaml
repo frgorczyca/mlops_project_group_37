@@ -1,0 +1,18 @@
+program: train.py  # your training entry script
+method: bayes  # or "random" or "grid"
+metric: 
+  name: val_loss
+  goal: minimize
+
+parameters:
+  optimizer.lr:
+    values: [1e-5, 2e-5, 3e-5]
+  training.batch_size:
+    values: [8, 16, 32]
+  model.dropout:
+    values: [0.1, 0.3, 0.5]
+
+#Running the sweep:
+
+#1: wandb sweep sweep.yaml
+#2: wandb agent username/project_name/abc123
