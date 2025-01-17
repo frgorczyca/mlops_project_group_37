@@ -1,5 +1,6 @@
 # Base image
-FROM  nvcr.io/nvidia/pytorch:22.07-py3 AS base
+#FROM  nvcr.io/nvidia/pytorch:22.07-py3
+FROM python:3.8-slim
 
 RUN apt update && \
     apt install --no-install-recommends -y build-essential gcc && \
@@ -8,7 +9,7 @@ RUN apt update && \
 COPY src src/
 COPY requirements.txt requirements.txt
 COPY requirements_dev.txt requirements_dev.txt
-COPY README.md README.md
+
 COPY pyproject.toml pyproject.toml
 
 RUN --mount=type=cache,target=/root/.cache/pip pip install -r requirements.txt
