@@ -15,6 +15,9 @@ from text_detect.model import LLMDetector
 
 from loguru import logger
 
+#newly added
+#from dotenv import load_dotenv
+from omegaconf import OmegaConf
 
 class LLMDataset(Dataset):
     def __init__(self, texts, labels, tokenizer, max_length):
