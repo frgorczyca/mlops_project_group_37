@@ -15,6 +15,9 @@ from text_detect.model import LLMDetector
 
 from loguru import logger
 
+#newly added
+from dotenv import load_dotenv
+from omegaconf import OmegaConf
 
 class LLMDataset(Dataset):
     def __init__(self, texts, labels, tokenizer, max_length):
@@ -181,17 +184,19 @@ def train(cfg):
 
     logger.info(f"Callbacks: {callbacks}")
 
-
+    config_dict = OmegaConf.to_container(cfg, resolve=True)#cconverting the hydra config file in a JSON-serializable dictionaty.
     # Initialize Weights & Biases logger
     logger_wandb = False
     if cfg.wandb.use_wandb:
+        # Optionally, if you want to log in programmatically (e.g. from a secret file or environment variable):
+        # wandb.login(key=os.getenv("WANDB_API_KEY", "<fallback-or-raise-error>"))
         logger_wandb = WandbLogger(
             project=cfg.wandb.project_name,
-            name=cfg.wandb.run_name,
+            name=f"lr={cfg.optimizer.lr}-bs={cfg.training.batch_size}",
             save_dir=cfg.training.output_dir,
             job_type="train",
             tags=["training"],
-            config={cfg},
+            config=config_dict,
         )
         logger.info("Initialized W&B logger")
     else:
@@ -234,15 +239,21 @@ def train(cfg):
         logger.warning("Model not saved")
 
     # Save model as W&B artifact
-    if cfg.wandb.save_artifact:
+    if cfg.wandb.save_artifact and logger_wandb:
         artifact = wandb.Artifact(
-            name="...",
+            name=f"{cfg.wandb.run_name}-model",
             type="model",
-            description="...",
-            metadata={"..."},
+            description=f"Text detection model: AI or Human text classifier. Trained for {trainer.current_epoch} epochs.",
+            metadata={
+                "max_epochs": cfg.training.max_epochs,
+                "batch_size": cfg.training.batch_size,
+                "lr": cfg.optimizer.lr
+                # ... any other metadata
+            },
         )
-        artifact.add_file(os.path.join(cfg.training.output_dir, cfg.training.model_name))
+        artifact.add_file(model_path)  # path to the .pth or .ckpt file
         wandb.log_artifact(artifact)
+        logger.info("Saved model artifact to W&B")
     else:
         logger.warning("Model artifact not saved to W&B artifact registry")
 
