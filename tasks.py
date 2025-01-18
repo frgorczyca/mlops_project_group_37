@@ -126,12 +126,16 @@ def stage_best_model(ctx: Context, artifact_name="", type="model", metric="best_
     
     ctx.run(command, echo=True, pty=not WINDOWS)
 
+
+# Testing commands
 @task
 def unittests(ctx: Context) -> None:
     """Run tests."""
-    ctx.run("coverage run -m pytest src/tests/unittests", echo=True, pty=not WINDOWS)
+    ctx.run("coverage run --source=src/text_detect -m pytest src/tests/unittests", echo=True, pty=not WINDOWS)
     ctx.run("coverage report -m", echo=True, pty=not WINDOWS)
 
+
+# Docker commands
 @task
 def docker_build(ctx: Context, progress: str = "plain") -> None:
     """Build docker images."""
