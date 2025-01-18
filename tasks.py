@@ -17,7 +17,6 @@ def create_environment(ctx: Context) -> None:
         pty=not WINDOWS,
     )
 
-
 @task
 def requirements(ctx: Context) -> None:
     """Install project requirements."""
@@ -32,33 +31,48 @@ def dev_requirements(ctx: Context) -> None:
     ctx.run('pip install -e .["dev"]', echo=True, pty=not WINDOWS)
     ctx.run('pip install -e .["types"]', echo=True, pty=not WINDOWS)
 
-
 @task
 def download_data(ctx: Context) -> None:
     """Download data from Kaggle."""
     ctx.run("sh data/downloadKaggleDataset.sh", echo=True, pty=not WINDOWS)
 
 
-
 # Project commands
 @task
 def preprocess_data(ctx: Context) -> None:
     """Preprocess data."""
-    ctx.run(f"python src/{PROJECT_NAME}/data.py data/raw data/processed", echo=True, pty=not WINDOWS)
+    ctx.run(f"python src/{PROJECT_NAME}/data.py", echo=True, pty=not WINDOWS)
 
+@task
+def analyze_data(ctx: Context) -> None:
+    """Analyze data."""
+    ctx.run(f"python src/{PROJECT_NAME}/analysis.py", echo=True, pty=not WINDOWS)
 
 @task
 def train(ctx: Context) -> None:
     """Train model."""
     ctx.run(f"python src/{PROJECT_NAME}/train.py", echo=True, pty=not WINDOWS)
 
+@task
+def evaluate(ctx: Context) -> None:
+    """Evaluate model on the test set."""
+    ctx.run(f"python src/{PROJECT_NAME}/evaluate.py", echo=True, pty=not WINDOWS)
+
+@task
+def link_latest_to_registry(ctx: Context) -> None:
+    """Links the latest trained model to the artifact registry."""
+    ctx.run(f"python src/{PROJECT_NAME}/link_to_registry.py", echo=True, pty=not WINDOWS)
+
+@task
+def stage_best_model(ctx, model_name="Trained LLM detector:latest", metric="best_val_accuracy", higher_better=True) -> None:
+    """Links the latest trained model to the artifact registry."""
+    ctx.run(f"python src/text_detect/auto_register_best_model.py", echo=True, pty=not WINDOWS)
 
 @task
 def test(ctx: Context) -> None:
     """Run tests."""
     ctx.run("coverage run -m pytest src/tests/ ", echo=True, pty=not WINDOWS)
     ctx.run("coverage report -m", echo=True, pty=not WINDOWS)
-
 
 @task
 def docker_build(ctx: Context, progress: str = "plain") -> None:
@@ -85,7 +99,3 @@ def serve_docs(ctx: Context) -> None:
     """Serve documentation."""
     ctx.run("mkdocs serve --config-file docs/mkdocs.yaml", echo=True, pty=not WINDOWS)
 
-@task()
-def evaluate(ctx: Context, model_name: str):
-    """Train model."""
-    ctx.run(f"python src/{PROJECT_NAME}/evaluate.py", echo=True, pty=not WINDOWS)

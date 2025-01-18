@@ -194,3 +194,6 @@ outputs/*
 # Saved models
 models/*
 !models/.gitkeep
+
+# wandb logging
+wandb/

@@ -10,4 +10,4 @@ numpy==1.26.4
 scikit-learn==1.5.2
 pandas==2.2.3
 loguru==0.7.3
-omegaconf
+python-dotenv

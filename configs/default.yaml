@@ -1,14 +1,24 @@
 # configs/default.yaml
+evaluate:
+  artifact_name: "llm-detector-model"
+  version: "latest"
+
 defaults:
   - model: bert_tiny
   - optimizer: adamw
   - data: default
   - training: default
-  - wandb: default
+
+logging:
+  enable_wandb: True # Set to True to enable Weights & Biases logging
+  # Loggable metrics
+  precision: True
+  recall: False
+  f1: False
+  auroc: False
+
+seed: 42 # Random seed for reproducibility
 
 hydra:
   job:
-    chdir: false
-
-# Random seed for reproducibility
-seed: 42
+    chdir: false # Stops hydra from changing the CWD
