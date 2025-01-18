@@ -33,6 +33,11 @@ def dev_requirements(ctx: Context) -> None:
     ctx.run('pip install -e .["types"]', echo=True, pty=not WINDOWS)
 
 @task
+def pre_commit_install(ctx: Context) -> None:
+    """Install pre-commit hooks."""
+    ctx.run("pre-commit install", echo=True, pty=not WINDOWS)
+
+@task
 def download_data(ctx: Context) -> None:
     """Download data from Kaggle."""
     ctx.run("sh data/downloadKaggleDataset.sh", echo=True, pty=not WINDOWS)
@@ -58,7 +63,7 @@ def train(ctx: Context) -> None:
 def evaluate_model(ctx: Context, artifact="", config="default"):
     """
     Evaluate a model using the specified artifact and config.
-    
+
     Args:
         artifact: Artifact path in format 'name:version'
         config: Name of config file to use (without .yaml extension)
@@ -66,20 +71,20 @@ def evaluate_model(ctx: Context, artifact="", config="default"):
     if not artifact:
         print("Error: Please provide an artifact (e.g. 'llm-detector-model:v4')")
         return
-    
+
     command = (
         f"python src/{PROJECT_NAME}/evaluate.py "
         f"{shlex.quote(artifact)} "
         f"--config {shlex.quote(config)}"
     )
-    
+
     ctx.run(command, echo=True, pty=not WINDOWS)
 
 @task
 def link_to_registry(ctx: Context, artifact="", aliases=None):
     """
     Link a specific team project model to the organization registry collection with the given aliases.
-    
+
     Args:
         artifact: Artifact path in format 'name:version'
         aliases: Optional comma-separated list of aliases (no spaces)
@@ -87,22 +92,22 @@ def link_to_registry(ctx: Context, artifact="", aliases=None):
     if not artifact:
         print("Error: Please provide an artifact (e.g. 'llm-detector-model:v4')")
         return
-    
+
     # Build command
     command = f"python src/{PROJECT_NAME}/link_model.py {shlex.quote(artifact)}"
-    
+
     # Add aliases if provided
     if aliases:
         alias_args = " ".join(f"-a {alias}" for alias in aliases.split(","))
         command = f"{command} {alias_args}"
-    
+
     ctx.run(command, echo=True, pty=not WINDOWS)
 
 @task
 def stage_best_model(ctx: Context, artifact_name="", type="model", metric="best_val_accuracy", higher_is_better=True):
     """
     Stage the best model to the registry based on the specified metric.
-    
+
     Args:
         artifact_name: Name of the model to be registered, e.g. 'llm-detector-model'
         artifact_type: Type of the artifact to be registered.
@@ -112,10 +117,10 @@ def stage_best_model(ctx: Context, artifact_name="", type="model", metric="best_
     if not artifact_name:
         print("Error: Please provide an artifact name")
         return
-    
+
     higher_is_better_flag = "--higher-is-better" if higher_is_better else ""
     lower_is_better_flag = "" if higher_is_better else "--lower-is-better"
-    
+
     command = (
         f"python src/{PROJECT_NAME}/stage_best_model.py "
         f"{artifact_name} "
@@ -123,7 +128,7 @@ def stage_best_model(ctx: Context, artifact_name="", type="model", metric="best_
         f"--metric {metric} "
         f"{higher_is_better_flag} {lower_is_better_flag}"
     ).strip()
-    
+
     ctx.run(command, echo=True, pty=not WINDOWS)
 
 
@@ -160,4 +165,3 @@ def build_docs(ctx: Context) -> None:
 def serve_docs(ctx: Context) -> None:
     """Serve documentation."""
     ctx.run("mkdocs serve --config-file docs/mkdocs.yaml", echo=True, pty=not WINDOWS)
-
