@@ -1,8 +1,4 @@
 # configs/default.yaml
-evaluate:
-  artifact_name: "llm-detector-model"
-  version: "latest"
-
 defaults:
   - model: bert_tiny
   - optimizer: adamw

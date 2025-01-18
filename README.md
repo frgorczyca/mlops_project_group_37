@@ -8,6 +8,24 @@ The data we have used is the kaggle dataset "DAIGT Proper Train Dataset" (https:
 
 To-be-updated
 
+
+## Artifact staging
+Works as follows:
+1. A model is trained using invoke train, and is saved as an artifact on Weights and Biases under the given project and artifact name. The metrics of that artifacts run are also saved.
+2. invoke evaluate.py can be called with the artifacts name and version (format: artifact_name:version) to evaluate it on the test dataset.
+3. When invoke stage-best-model is run, all versions of the artifact name are compared on the given metric, and the best performing version is staged to the organizations (not teams) given Weights and Biases artifact registry collection, where it gets the aliases "best" and "staging"
+4. An automation event on the artifact registry collection called "staged_model" is triggered when the "staging" alias is added to a linked model, triggering a GitHub action workflow that listens to the /dispatches endpoint. It recieves a JSON payload that contains information about the model that was staged, such as its name etc.
+5. Upon "stage_model" event being triggered, the stage_model.yaml workflow is executed, which does the following:
+   1. Checks the event type is correct and outputs the model name from the payload as an environment variable
+   2. Tests the staged model on tests/performancetests/test_model.py. The repo needs to have certain environent variables defined as secrets to work
+   3. If the staged model passes the test(s), it gets the alias "production" added, and the workflow is complete
+
+WANDB_API_KEY
+WANDB_ENTITY
+WANDB_TEAM
+WANDB_PROJECT
+
+
 ## Project structure
 
 The directory structure of the project looks like this:

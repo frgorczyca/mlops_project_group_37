@@ -1,4 +1,5 @@
 import os
+import shlex
 
 from invoke import Context, task
 
@@ -54,24 +55,81 @@ def train(ctx: Context) -> None:
     ctx.run(f"python src/{PROJECT_NAME}/train.py", echo=True, pty=not WINDOWS)
 
 @task
-def evaluate(ctx: Context) -> None:
-    """Evaluate model on the test set."""
-    ctx.run(f"python src/{PROJECT_NAME}/evaluate.py", echo=True, pty=not WINDOWS)
+def evaluate_model(ctx: Context, artifact="", config="default"):
+    """
+    Evaluate a model using the specified artifact and config.
+    
+    Args:
+        artifact: Artifact path in format 'name:version'
+        config: Name of config file to use (without .yaml extension)
+    """
+    if not artifact:
+        print("Error: Please provide an artifact (e.g. 'llm-detector-model:v4')")
+        return
+    
+    command = (
+        f"python src/{PROJECT_NAME}/evaluate.py "
+        f"{shlex.quote(artifact)} "
+        f"--config {shlex.quote(config)}"
+    )
+    
+    ctx.run(command, echo=True, pty=not WINDOWS)
 
 @task
-def link_latest_to_registry(ctx: Context) -> None:
-    """Links the latest trained model to the artifact registry."""
-    ctx.run(f"python src/{PROJECT_NAME}/link_to_registry.py", echo=True, pty=not WINDOWS)
+def link_to_registry(ctx: Context, artifact="", aliases=None):
+    """
+    Link a specific team project model to the organization registry collection with the given aliases.
+    
+    Args:
+        artifact: Artifact path in format 'name:version'
+        aliases: Optional comma-separated list of aliases (no spaces)
+    """
+    if not artifact:
+        print("Error: Please provide an artifact (e.g. 'llm-detector-model:v4')")
+        return
+    
+    # Build command
+    command = f"python src/{PROJECT_NAME}/link_model.py {shlex.quote(artifact)}"
+    
+    # Add aliases if provided
+    if aliases:
+        alias_args = " ".join(f"-a {alias}" for alias in aliases.split(","))
+        command = f"{command} {alias_args}"
+    
+    ctx.run(command, echo=True, pty=not WINDOWS)
 
 @task
-def stage_best_model(ctx, model_name="Trained LLM detector:latest", metric="best_val_accuracy", higher_better=True) -> None:
-    """Links the latest trained model to the artifact registry."""
-    ctx.run(f"python src/text_detect/auto_register_best_model.py", echo=True, pty=not WINDOWS)
+def stage_best_model(ctx: Context, artifact_name="", type="model", metric="best_val_accuracy", higher_is_better=True):
+    """
+    Stage the best model to the registry based on the specified metric.
+    
+    Args:
+        artifact_name: Name of the model to be registered, e.g. 'llm-detector-model'
+        artifact_type: Type of the artifact to be registered.
+        metric: Metric to choose the best model from.
+        higher_is_better: Whether higher metric values are better.
+    """
+    if not artifact_name:
+        print("Error: Please provide an artifact name")
+        return
+    
+    higher_is_better_flag = "--higher-is-better" if higher_is_better else ""
+    lower_is_better_flag = "" if higher_is_better else "--lower-is-better"
+    
+    command = (
+        f"python src/{PROJECT_NAME}/stage_best_model.py "
+        f"{artifact_name} "
+        f"--type {type} "
+        f"--metric {metric} "
+        f"{higher_is_better_flag} {lower_is_better_flag}"
+    ).strip()
+    
+    ctx.run(command, echo=True, pty=not WINDOWS)
 
 @task
-def test(ctx: Context) -> None:
+def unittests(ctx: Context) -> None:
     """Run tests."""
-    ctx.run("coverage run -m pytest src/tests/ ", echo=True, pty=not WINDOWS)
+    ctx.run("coverage run -m pytest src/tests/unittests", echo=True, pty=not WINDOWS)
     ctx.run("coverage report -m", echo=True, pty=not WINDOWS)
 
 @task
