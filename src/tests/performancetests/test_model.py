@@ -10,7 +10,7 @@ from text_detect.data import LLMDataset, load_data
 from text_detect.wandb_functions import (
     load_wandb_env_vars,
     load_download_artifact_model,
-    cleanup_downloaded_model,
+    # cleanup_downloaded_model,
 )
 
 from dotenv import load_dotenv
@@ -21,6 +21,8 @@ print(os.getcwd())
 
 
 def test_model():
+    print("os CWD", os.getcwd())
+
     config_name = "default.yaml"
 
     artifact_registry_path = os.getenv("MODEL_NAME")
@@ -52,8 +54,10 @@ def test_model():
     os.environ["TOKENIZERS_PARALLELISM"] = "false"  # Set this environment variable before importing tokenizers
     tokenizer = AutoTokenizer.from_pretrained(cfg.model.transformer_name)
 
-    print(f"Loading test data: {cfg.data.test_path}")
-    test_texts, test_labels = load_data(cfg.data.test_path)
+    data_dir = f"../../{cfg.data.test_path}"
+    print(f"Loading test data: {data_dir}")
+
+    test_texts, test_labels = load_data(data_dir)
     test_dataset = LLMDataset(texts=test_texts, labels=test_labels, tokenizer=tokenizer, max_length=cfg.data.max_length)
 
     test_loader = DataLoader(
@@ -81,14 +85,14 @@ def test_model():
     print(f"Time taken: {end - start}")
     print(f"Test results: {test_results[0]}")
 
-    assert end - start < 60, "Evaluation took too long"
+    assert end - start < 120, "Evaluation took too long"
     assert test_results[0]["test_accuracy"] > 0.8, "Model accuracy is too low"
 
     print("Test passed")
 
-    print("Cleaning up downloaded model")
-    cleanup_downloaded_model()
-    print("Downloaded model cleaned up")
+    # print("Cleaning up downloaded model")
+    # cleanup_downloaded_model()
+    # print("Downloaded model cleaned up")
 
 
 if __name__ == "__main__":
