@@ -51,7 +51,7 @@ jobs:
 
     - name: Test model
       run: |
-        pytest tests/performancetests/test_model.py
+        pytest src/tests/performancetests/test_model.py
 
   add_production_alias:
     runs-on: ubuntu-latest
