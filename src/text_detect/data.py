@@ -37,10 +37,10 @@ class LLMDataset(Dataset):
             "attention_mask": encoding["attention_mask"].flatten(),
             "labels": torch.tensor(label, dtype=torch.long),
         }
-    
+
     def get_text(self, idx):
         return self.texts[idx]
-    
+
     def get_label(self, idx):
         return self.labels[idx]
 
@@ -61,12 +61,13 @@ def load_latest_file(base_path: str) -> Path:
                     highest_file = item
             except ValueError:
                 continue
-    
+
     if highest_file:
         print(f"Using latest dataset: {highest_file}")
         return highest_file
     else:
         raise FileNotFoundError("No suitable 'train_drcat' files found.")
+
 
 def load_data(data_path: Path) -> (list, list):
     """Load data from the CSV and extract texts and labels."""
@@ -74,17 +75,16 @@ def load_data(data_path: Path) -> (list, list):
     with open(data_path, newline="") as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
-            texts.append(row['text'])
-            labels.append(int(row['label']))
+            texts.append(row["text"])
+            labels.append(int(row["label"]))
     return texts, labels
+
 
 def save_to_csv(texts: list, labels: list, output_file: Path):
     """Save texts and labels to a CSV file."""
-    df = pd.DataFrame({
-        'text': texts,
-        'label': labels
-    })
+    df = pd.DataFrame({"text": texts, "label": labels})
     df.to_csv(output_file, index=False)
+
 
 def preprocess_and_split(cfg: DictConfig, data_path: Path):
     """Preprocess, split the dataset, and save it to the processed folder."""
@@ -93,10 +93,7 @@ def preprocess_and_split(cfg: DictConfig, data_path: Path):
 
     # Split the dataset into training and testing sets
     train_texts, test_texts, train_labels, test_labels = train_test_split(
-        texts,
-        labels,
-        test_size=cfg.data.test_size,
-        random_state=cfg.seed
+        texts, labels, test_size=cfg.data.test_size, random_state=cfg.seed
     )
 
     # Create processed folder if it doesn't exist
@@ -107,14 +104,16 @@ def preprocess_and_split(cfg: DictConfig, data_path: Path):
     save_to_csv(train_texts, train_labels, output_folder / "train.csv")
     save_to_csv(test_texts, test_labels, output_folder / "test.csv")
 
+
 @hydra.main(version_base="1.1", config_path="../../configs", config_name="default")
 def preprocess(cfg: DictConfig) -> None:
     """Function to initialize dataset processing and preprocess data."""
     # Load the latest dataset file
     latest_file = load_latest_file("data/raw")
-    
+
     # Preprocess and split the data
     preprocess_and_split(cfg, latest_file)
+
 
 if __name__ == "__main__":
     preprocess()
