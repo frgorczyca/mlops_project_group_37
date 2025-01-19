@@ -79,7 +79,8 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -r requirements.txt
-        pip list
+        pip install -r requirements_dev.txt
+        pip install -e .
 
     - name: Add production alias
       run: |
