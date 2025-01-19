@@ -2,7 +2,13 @@ name: Check staged model
 
 on:
   repository_dispatch:
-    types: staged_model
+    types: [staged_model]
+  workflow_dispatch:  # Add this for local testing
+    inputs:
+      artifact_version_string:
+        description: 'Model artifact version string'
+        required: true
+        default: 'test_model_v1'
 
 jobs:
   identify_event:
@@ -51,6 +57,8 @@ jobs:
 
     - name: Test model
       run: |
+        sh data/downloadKaggleDataset.sh
+        python src/text_detect/data.py
         cd src/tests
         pytest performancetests/test_model.py
 
