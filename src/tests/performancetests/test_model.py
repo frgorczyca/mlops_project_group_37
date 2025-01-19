@@ -10,7 +10,7 @@ from text_detect.data import LLMDataset, load_data
 from text_detect.wandb_functions import (
     load_wandb_env_vars,
     load_download_artifact_model,
-    # cleanup_downloaded_model,
+    cleanup_downloaded_model,
 )
 
 from dotenv import load_dotenv
@@ -52,8 +52,13 @@ def test_model():
     os.environ["TOKENIZERS_PARALLELISM"] = "false"  # Set this environment variable before importing tokenizers
     tokenizer = AutoTokenizer.from_pretrained(cfg.model.transformer_name)
 
-    data_dir = f"../../{cfg.data.test_path}"
-    print(f"Loading test data: {data_dir}")
+    # Construct absolute path to test data
+    data_dir = os.path.join("../../", cfg.data.test_path)
+    print(f"Absolute path of data_dir: {os.path.abspath(data_dir)}")
+    print(f"Does file exist? {os.path.exists(os.path.abspath(data_dir))}")
+    print(f"cfg.data.test_path value: {cfg.data.test_path}")
+
+    print(f"Loading test data from absolute path: {data_dir}")
 
     test_texts, test_labels = load_data(data_dir)
     test_dataset = LLMDataset(texts=test_texts, labels=test_labels, tokenizer=tokenizer, max_length=cfg.data.max_length)
@@ -88,9 +93,9 @@ def test_model():
 
     print("Test passed")
 
-    # print("Cleaning up downloaded model")
-    # cleanup_downloaded_model()
-    # print("Downloaded model cleaned up")
+    print("Cleaning up downloaded model")
+    cleanup_downloaded_model()
+    print("Downloaded model cleaned up")
 
 
 if __name__ == "__main__":
