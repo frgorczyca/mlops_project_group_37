@@ -51,7 +51,8 @@ jobs:
 
     - name: Test model
       run: |
-        pytest src/tests/performancetests/test_model.py
+        cd src/tests
+        pytest performancetests/test_model.py
 
   add_production_alias:
     runs-on: ubuntu-latest
@@ -86,4 +87,5 @@ jobs:
 
     - name: Add production alias
       run: |
-        python src/text_detect/link_model.py $MODEL_NAME -a production
+        cd src/text_detect
+        python link_model.py $MODEL_NAME -a production

@@ -37,5 +37,5 @@ jobs:
 
       - name: Run tests & coverage
         run: |
-          coverage run -m pytest src/tests/unittests
+          coverage run --source=src/text_detect -m  pytest src/tests/unittests/
           coverage report -m
