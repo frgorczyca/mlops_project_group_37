@@ -45,12 +45,13 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -r requirements.txt
-        pip install pytest
+        pip install -r requirements_dev.txt
+        pip install -e .
         pip list
 
     - name: Test model
       run: |
-        pytest tests/performancetests/test_model.py
+        pytest src/tests/performancetests/test_model.py
 
   add_production_alias:
     runs-on: ubuntu-latest
@@ -81,6 +82,7 @@ jobs:
         pip install -r requirements.txt
         pip install -r requirements_dev.txt
         pip install -e .
+        pip list
 
     - name: Add production alias
       run: |
