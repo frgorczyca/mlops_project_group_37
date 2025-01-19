@@ -9,7 +9,6 @@ import time
 from text_detect.data import LLMDataset, load_data
 from text_detect.wandb_functions import (
     load_wandb_env_vars,
-    get_artifact_project_path,
     load_download_artifact_model,
     cleanup_downloaded_model,
 )
@@ -24,9 +23,8 @@ print(os.getcwd())
 def test_model():
     config_name = "default.yaml"
 
-    artifact = os.getenv("MODEL_NAME")
-
-    print(f"Starting model test of {artifact}")
+    artifact_registry_path = os.getenv("MODEL_NAME")
+    print(f"Starting model test of {artifact_registry_path}")
 
     print(f"Loading config: {config_name}")
     hydra.initialize(config_path="../../../configs", version_base="1.1")
@@ -47,12 +45,7 @@ def test_model():
 
     # Extract artifact name and version
     print("Extracting artifact name and version")
-    artifact_name, artifact_name_version = artifact.split(":")
-    artifact_project_path = get_artifact_project_path(team_name, project_name, artifact_name, artifact_name_version)
-
-    # Load and download the model
-    print(f"Loading and downloading model: {artifact_project_path}")
-    artifact, model = load_download_artifact_model(cfg, api, artifact_project_path)
+    artifact, model = load_download_artifact_model(cfg, api, artifact_registry_path)
 
     # Load tokenizer
     print(f"Loading tokenizer: {cfg.model.transformer_name}")
