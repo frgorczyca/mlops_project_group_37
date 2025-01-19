@@ -1,6 +1,5 @@
 import logging
 import operator
-import os
 
 import typer
 import wandb
@@ -17,25 +16,16 @@ logger.add(
     "logs/stage_best_model.log",
     rotation="100 MB",
     level="INFO",
-    format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}"
+    format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}",
 )
+
 
 def stage_best_model_to_registry(
     artifact_name: str = typer.Argument(..., help="Name of the model to be registered"),
-    artifact_type: str = typer.Option(
-        "model",
-        "--type", "-t",
-        help="Type of the artifact to be registered"
-    ),
-    metric_name: str = typer.Option(
-        "best_val_accuracy",
-        "--metric", "-m",
-        help="Metric to choose the best model from"
-    ),
+    artifact_type: str = typer.Option("model", "--type", "-t", help="Type of the artifact to be registered"),
+    metric_name: str = typer.Option("best_val_accuracy", "--metric", "-m", help="Metric to choose the best model from"),
     higher_is_better: bool = typer.Option(
-        True,
-        "--higher-is-better/--lower-is-better",
-        help="Whether higher metric values are better"
+        True, "--higher-is-better/--lower-is-better", help="Whether higher metric values are better"
     ),
 ) -> None:
     """
