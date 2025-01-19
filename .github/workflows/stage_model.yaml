@@ -1,7 +1,7 @@
 name: Check staged model
 
 on:
-  repository_dispatch:
+  repository_dispatch: #
     types: [staged_model]
   workflow_dispatch:  # Add this for local testing
     inputs:
