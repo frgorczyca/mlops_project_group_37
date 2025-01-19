@@ -8,83 +8,101 @@ import sys
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 from pytorch_lightning.loggers import WandbLogger
 from transformers import AutoTokenizer
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split
-import pandas as pd
 
 from text_detect.model import LLMDetector
+from text_detect.data import LLMDataset, load_data
 
 from loguru import logger
 from omegaconf import OmegaConf
 
+from dotenv import load_dotenv
 
-class LLMDataset(Dataset):
-    def __init__(self, texts, labels, tokenizer, max_length):
-        self.texts = texts
-        self.labels = labels
-        self.tokenizer = tokenizer
-        self.max_length = max_length
+load_dotenv()
 
-    def __len__(self):
-        return len(self.texts)
 
-    def __getitem__(self, idx):
-        text = str(self.texts[idx])
-        label = self.labels[idx]
+def setup_callbacks(cfg, logger):
+    """Setup PyTorch Lightning callbacks based on configuration"""
 
-        encoding = self.tokenizer.encode_plus(
-            text,
-            add_special_tokens=True,
-            max_length=self.max_length,
-            padding="max_length",
-            truncation=True,
-            return_attention_mask=True,
-            return_tensors="pt",
+    # Setup callbacks
+    callbacks = []
+
+    # Checkpoint callback (saving model)
+    if cfg.training.save_checkpoints:
+        checkpoint_callback = ModelCheckpoint(
+            dirpath=cfg.training.output_dir,
+            filename="llm-detector-{epoch:02d}-{val_accuracy:.2f}",
+            monitor="val_accuracy",
+            mode="max",
+            save_top_k=cfg.training.save_top_k,
+            save_weights_only=False,  # This ensures full checkpoint saving
+        )
+        callbacks.append(checkpoint_callback)
+        logger.info("Added checkpoint callback")
+
+    # Early stopping callback
+    if cfg.training.early_stopping:
+        early_stopping_callback = EarlyStopping(
+            monitor="val_loss",
+            patience=cfg.training.patience,
+            mode="min",
+        )
+        callbacks.append(early_stopping_callback)
+        logger.info(f"Added early stopping callback with patience {cfg.training.patience}")
+
+    logger.info(f"Callbacks: {callbacks}")
+
+    return callbacks
+
+
+def initialize_wandb_logger(cfg, logger, model, train_texts, val_texts):
+    """Initialize Weights & Biases logger if enabled"""
+
+    if cfg.logging.enable_wandb:
+        api_key = os.getenv("WANDB_API_KEY")
+        team_name = os.getenv("WANDB_TEAM")
+        project_name = os.getenv("WANDB_PROJECT")
+
+        run_name = f"{cfg.optimizer.type}-lr{cfg.optimizer.lr}-bs{cfg.training.batch_size}"
+
+        # Log into W&B
+        wandb.login(key=api_key, relogin=True)
+
+        # Initialize W&B logger
+        wandb_logger = WandbLogger(
+            entity=team_name,
+            project=project_name,
+            name=run_name,
+            save_dir=cfg.training.output_dir,
+            log_model=False,  # Disable automatic logging of models, since it doesn't work as intended
+            job_type="train",
+            tags=["training"],
+            config=OmegaConf.to_container(cfg, resolve=True),
         )
 
-        return {
-            "input_ids": encoding["input_ids"].flatten(),
-            "attention_mask": encoding["attention_mask"].flatten(),
-            "labels": torch.tensor(label, dtype=torch.long),
-        }
-    
-    def get_text(self, idx):
-        return self.texts[idx]
-    
-    def get_label(self, idx):
-        return self.labels[idx]
+        # Log metadata
+        wandb_logger.experiment.config.update(
+            {
+                "total_parameters": sum(p.numel() for p in model.parameters()),
+                "trainable_parameters": sum(p.numel() for p in model.parameters() if p.requires_grad),
+                "train_samples": len(train_texts),
+                "val_samples": len(val_texts),
+                "python_version": sys.version,
+                "pytorch_version": torch.__version__,
+            }
+        )
 
+        # Watch model
+        wandb_logger.watch(
+            model, log="all"
+        )  # log gradients, parameter histogram and model topology, remove "all" if only log gradients
+        logger.info("Initialized W&B logger")
+    else:
+        wandb_logger = False
+        logger.warning("W&B logging disabled")
 
-def load_data(cfg):
-    """Load and preprocess the data with train/val/test split."""
-    logger.info(f"Loading data from {cfg.data.path}")
-    logger.debug(f"CWD: {os.getcwd()}")
-
-    data = pd.read_csv(cfg.data.path)
-    texts = data["text"].values
-    labels = data["label"].values
-
-    logger.info(f"Successfully loaded {len(texts)} samples")
-    logger.debug(f"Label distribution: {pd.Series(labels).value_counts().to_dict()}")
-
-    # First split: separate test set
-    train_val_texts, test_texts, train_val_labels, test_labels = train_test_split(
-        texts, labels,
-        test_size=cfg.data.test_size,
-        random_state=cfg.seed,
-        stratify=labels,  # Maintain label distribution
-    )
-
-    # Second split: separate train and validation
-    train_texts, val_texts, train_labels, val_labels = train_test_split(
-        train_val_texts, train_val_labels,
-        test_size=cfg.training.val_size,
-        random_state=cfg.seed,
-        stratify=train_val_labels
-    )
-
-    logger.info(f"Split data: {len(train_texts)} training, {len(val_texts)} validation, {len(test_texts)} test samples")
-    return train_texts, val_texts, test_texts, train_labels, val_labels, test_labels
+    return wandb_logger
 
 
 @hydra.main(version_base="1.1", config_path="../../configs", config_name="default")
@@ -96,7 +114,7 @@ def train(cfg):
         os.path.join(hydra_path, "train.log"),
         rotation="100 MB",
         level="INFO",
-        format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}"
+        format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}",
     )
 
     logger.info("Starting training pipeline")
@@ -108,18 +126,27 @@ def train(cfg):
 
     # Load tokenizer
     logger.info(f"Loading tokenizer: {cfg.model.transformer_name}")
-    os.environ["TOKENIZERS_PARALLELISM"] = "false" # Set this environment variable before importing tokenizers
+    os.environ["TOKENIZERS_PARALLELISM"] = "false"  # Set this environment variable before importing tokenizers
     tokenizer = AutoTokenizer.from_pretrained(cfg.model.transformer_name)
-    
+
     # Load and split data
     logger.info("Loading data")
-    train_texts, val_texts, test_texts, train_labels, val_labels, test_labels = load_data(cfg)
+    train_val_texts, train_val_labels = load_data(cfg.data.train_path)
+
+    train_texts, val_texts, train_labels, val_labels = train_test_split(
+        train_val_texts,
+        train_val_labels,
+        test_size=cfg.training.val_size,
+        random_state=cfg.seed,
+        stratify=train_val_labels,
+    )
 
     # Create datasets
     logger.info("Creating datasets")
-    train_dataset = LLMDataset(train_texts, train_labels, tokenizer, max_length=cfg.data.max_length)
-    val_dataset = LLMDataset(val_texts, val_labels, tokenizer, max_length=cfg.data.max_length)
-    test_dataset = LLMDataset(test_texts, test_labels, tokenizer, max_length=cfg.data.max_length)
+    train_dataset = LLMDataset(
+        texts=train_texts, labels=train_labels, tokenizer=tokenizer, max_length=cfg.data.max_length
+    )
+    val_dataset = LLMDataset(texts=val_texts, labels=val_labels, tokenizer=tokenizer, max_length=cfg.data.max_length)
 
     # Create dataloaders
     logger.info("Initializing dataloaders")
@@ -139,76 +166,25 @@ def train(cfg):
         persistent_workers=True,
         pin_memory=True,
     )
-    test_loader = DataLoader(
-        test_dataset,
-        batch_size=cfg.training.batch_size,
-        shuffle=False,
-        num_workers=cfg.training.num_workers,
-        persistent_workers=True,
-        pin_memory=True,
-    )
-
 
     # Initialize model
     logger.info("Initializing model")
     model = LLMDetector(cfg)
 
-
     # Setup callbacks
-    callbacks = []
-
-    # Checkpoint callback
-    if cfg.training.save_checkpoints:
-        checkpoint_callback = ModelCheckpoint(
-            dirpath=os.path.join(cfg.training.output_dir, "checkpoints"),
-            filename="llm-detector-{epoch:02d}-{val_loss:.2f}",
-            monitor="val_loss",
-            mode="min",
-            save_top_k=cfg.training.save_top_k,
-        )
-        callbacks.append(checkpoint_callback)
-        logger.info("Added checkpoint callback")
-
-    # Early stopping callback
-    if cfg.training.early_stopping:
-        early_stopping_callback = EarlyStopping(
-            monitor="val_loss",
-            patience=cfg.training.patience,
-            mode="min",
-        )
-        callbacks.append(early_stopping_callback)
-        logger.info(f"Added early stopping callback with patience {cfg.training.patience}")
-
-    logger.info(f"Callbacks: {callbacks}")
-
+    callbacks = setup_callbacks(cfg, logger)
 
     # Initialize Weights & Biases logger
-    if cfg.wandb.use_wandb:
-        run_name = f"{cfg.model.transformer_name}-lr{cfg.optimizer.lr}-bs{cfg.training.batch_size}-{cfg.optimizer.type}"
-        # Optionally, if you want to log in programmatically (e.g. from a secret file or environment variable):
-        # wandb.login(key=os.getenv("WANDB_API_KEY", "<fallback-or-raise-error>"))
-        logger_wandb = WandbLogger(
-            project=cfg.wandb.project_name,
-            name=run_name,
-            save_dir=cfg.training.output_dir,
-            job_type="train",
-            tags=["training"],
-            config=OmegaConf.to_container(cfg, resolve=True), # Converting the hydra config file in a JSON-serializable dictionaty.
-        )
-        logger.info("Initialized W&B logger")
-    else:
-        logger_wandb = False
-        logger.warning("W&B logging disabled")
-
+    wandb_logger = initialize_wandb_logger(cfg, logger, model, train_texts, val_texts)
 
     # Initialize trainer
     trainer = pl.Trainer(
         max_epochs=cfg.training.max_epochs,
-        accelerator='auto',
+        accelerator="auto",
         devices=1,
-        logger=logger_wandb,
+        logger=wandb_logger,
         log_every_n_steps=10,
-        enable_checkpointing=False, # Disable default checkpointing of last trained epoch
+        enable_checkpointing=cfg.training.save_checkpoints,
         callbacks=callbacks,
         # gradient_clip_val=1.0, # Prevent exploding gradients
         enable_progress_bar=True,
@@ -216,7 +192,6 @@ def train(cfg):
     )
 
     logger.info(f"Using device: {trainer.strategy.root_device}")
-
 
     # Train model
     logger.info("Starting model training")
@@ -227,56 +202,30 @@ def train(cfg):
     )
     logger.success("Training completed successfully")
 
-    if cfg.wandb.use_wandb:
-        wandb.run.summary.update({
-            "model_architecture": str(model),
-            "total_parameters": sum(p.numel() for p in model.parameters()),
-            "trainable_parameters": sum(p.numel() for p in model.parameters() if p.requires_grad),
-            "train_samples": len(train_texts),
-            "val_samples": len(val_texts),
-            "python_version": sys.version,
-            "pytorch_version": torch.__version__,
-        })
+    # Summarize training results
+    if cfg.training.save_checkpoints:
+        checkpoint_callback = callbacks[0]
+        logger.info(f"Best model checkpoint: {checkpoint_callback.best_model_path}")
+        # Retrieve the best validation accuracy
+        best_val_accuracy = checkpoint_callback.best_model_score
+        logger.info(f"Best Validation Accuracy: {best_val_accuracy}")
 
-    model_path = os.path.join(cfg.training.output_dir, cfg.training.model_name)
+        # Log to W&B if using WandbLogger
+        if cfg.logging.enable_wandb:
+            wandb_logger.experiment.summary["best_val_accuracy"] = best_val_accuracy
+            logger.info("Logged best validation accuracy to W&B")
 
-    # Save final model if needed
-    if cfg.training.save_model:
-        torch.save(model.state_dict(), model_path)
-        logger.info(f"Saved model state dict to {model_path}")
-    else:
-        logger.warning("Model not saved")
+            # Use Artifacts API to track model versions explicitly
+            artifact = wandb.Artifact(
+                name=cfg.logging.artifact_name,
+                type="model",
+                description="Model artifact for LLM Detector with best validation accuracy",
+                metadata={"best_val_accuracy": float(best_val_accuracy)},
+            )
 
-    # Save model as W&B artifact
-    if cfg.wandb.save_artifact and cfg.wandb.use_wandb:
-        artifact = wandb.Artifact(
-            name=f"{cfg.wandb.run_name}-model",
-            type="model",
-            description=f"Text detection model: AI or Human text classifier. Trained for {trainer.current_epoch} epochs.",
-            metadata={
-                "max_epochs": cfg.training.max_epochs,
-                "batch_size": cfg.training.batch_size,
-                "lr": cfg.optimizer.lr
-                # ... any other metadata
-            },
-        )
-        artifact.add_file(model_path)  # path to the .pth or .ckpt file
-        wandb.log_artifact(artifact)
-        logger.info("Saved model artifact to W&B")
-    else:
-        logger.warning("Model artifact not saved to W&B artifact registry")
-
-
-    # Test the model
-    logger.info("Starting model testing")
-    test_results = trainer.test(model=model, dataloaders=test_loader)
-
-    # Log test results
-    logger.info(f"Test Results: {test_results}")
-    if cfg.wandb.use_wandb and logger_wandb:
-        logger_wandb.log_metrics({"test_loss": test_results[0]["test_loss"], "test_acc": test_results[0]["test_acc"]})
-
-    logger.success("Training and testing completed successfully")
+            artifact.add_file(checkpoint_callback.best_model_path)
+            wandb_logger.experiment.log_artifact(artifact)
+            logger.info("Logged best model to W&B Artifacts")
 
 
 if __name__ == "__main__":
