@@ -45,7 +45,8 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -r requirements.txt
-        pip install pytest
+        pip install -r requirements_dev.txt
+        pip install -e .
         pip list
 
     - name: Test model
@@ -81,6 +82,7 @@ jobs:
         pip install -r requirements.txt
         pip install -r requirements_dev.txt
         pip install -e .
+        pip list
 
     - name: Add production alias
       run: |
