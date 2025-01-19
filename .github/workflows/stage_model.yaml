@@ -95,7 +95,5 @@ jobs:
 
     - name: Add production alias
       run: |
-        sh data/downloadKaggleDataset.sh
-        python src/text_detect/data.py
         cd src/text_detect
         python link_model.py $MODEL_NAME -a production --full-registry-path
