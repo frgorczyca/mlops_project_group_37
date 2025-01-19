@@ -18,6 +18,7 @@ def create_environment(ctx: Context) -> None:
         pty=not WINDOWS,
     )
 
+
 @task
 def requirements(ctx: Context) -> None:
     """Install project requirements."""
@@ -32,10 +33,12 @@ def dev_requirements(ctx: Context) -> None:
     ctx.run('pip install -e .["dev"]', echo=True, pty=not WINDOWS)
     ctx.run('pip install -e .["types"]', echo=True, pty=not WINDOWS)
 
+
 @task
 def pre_commit_install(ctx: Context) -> None:
     """Install pre-commit hooks."""
     ctx.run("pre-commit install", echo=True, pty=not WINDOWS)
+
 
 @task
 def download_data(ctx: Context) -> None:
@@ -49,15 +52,18 @@ def preprocess_data(ctx: Context) -> None:
     """Preprocess data."""
     ctx.run(f"python src/{PROJECT_NAME}/data.py", echo=True, pty=not WINDOWS)
 
+
 @task
 def analyze_data(ctx: Context) -> None:
     """Analyze data."""
     ctx.run(f"python src/{PROJECT_NAME}/analysis.py", echo=True, pty=not WINDOWS)
 
+
 @task
 def train(ctx: Context) -> None:
     """Train model."""
     ctx.run(f"python src/{PROJECT_NAME}/train.py", echo=True, pty=not WINDOWS)
+
 
 @task
 def evaluate_model(ctx: Context, artifact="", config="default"):
@@ -72,13 +78,10 @@ def evaluate_model(ctx: Context, artifact="", config="default"):
         print("Error: Please provide an artifact (e.g. 'llm-detector-model:v4')")
         return
 
-    command = (
-        f"python src/{PROJECT_NAME}/evaluate.py "
-        f"{shlex.quote(artifact)} "
-        f"--config {shlex.quote(config)}"
-    )
+    command = f"python src/{PROJECT_NAME}/evaluate.py {shlex.quote(artifact)} --config {shlex.quote(config)}"
 
     ctx.run(command, echo=True, pty=not WINDOWS)
+
 
 @task
 def link_to_registry(ctx: Context, artifact="", aliases=None):
@@ -102,6 +105,7 @@ def link_to_registry(ctx: Context, artifact="", aliases=None):
         command = f"{command} {alias_args}"
 
     ctx.run(command, echo=True, pty=not WINDOWS)
+
 
 @task
 def stage_best_model(ctx: Context, artifact_name="", type="model", metric="best_val_accuracy", higher_is_better=True):

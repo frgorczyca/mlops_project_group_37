@@ -45,6 +45,7 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -r requirements.txt
+        pip install pytest
         pip list
 
     - name: Test model
@@ -53,7 +54,7 @@ jobs:
 
   add_production_alias:
     runs-on: ubuntu-latest
-    needs: identify_event
+    needs: test_model
     env:
       WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
       WANDB_TEAM: ${{ secrets.WANDB_TEAM }}
@@ -78,7 +79,8 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -r requirements.txt
-        pip list
+        pip install -r requirements_dev.txt
+        pip install -e .
 
     - name: Add production alias
       run: |

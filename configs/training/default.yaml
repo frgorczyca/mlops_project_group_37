@@ -20,4 +20,3 @@ save_top_k: 1
 # - Early stopping
 early_stopping: True
 patience: 3
-
