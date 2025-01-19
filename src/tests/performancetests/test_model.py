@@ -7,7 +7,16 @@ import wandb
 import time
 
 from text_detect.data import LLMDataset, load_data
-from text_detect.wandb_functions import load_wandb_env_vars, get_artifact_project_path, load_download_artifact_model, cleanup_downloaded_model
+from text_detect.wandb_functions import (
+    load_wandb_env_vars,
+    get_artifact_project_path,
+    load_download_artifact_model,
+    cleanup_downloaded_model,
+)
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def test_model():
@@ -17,7 +26,6 @@ def test_model():
 
     print(f"Starting model test of {artifact}")
 
-    # Load config directly using OmegaConf
     print(f"Loading config: {config_name}")
     hydra.initialize(config_path="../../configs", version_base="1.1")
     cfg = hydra.compose(config_name=config_name)
@@ -46,7 +54,7 @@ def test_model():
 
     # Load tokenizer
     print(f"Loading tokenizer: {cfg.model.transformer_name}")
-    os.environ["TOKENIZERS_PARALLELISM"] = "false" # Set this environment variable before importing tokenizers
+    os.environ["TOKENIZERS_PARALLELISM"] = "false"  # Set this environment variable before importing tokenizers
     tokenizer = AutoTokenizer.from_pretrained(cfg.model.transformer_name)
 
     print(f"Loading test data: {cfg.data.test_path}")
@@ -65,7 +73,7 @@ def test_model():
     # Initialize trainer
     print("Initializing PyTorch Lightning trainer")
     trainer = pl.Trainer(
-        accelerator='auto',
+        accelerator="auto",
         devices=1,
         log_every_n_steps=10,
         enable_progress_bar=True,
@@ -77,7 +85,7 @@ def test_model():
     end = time.time()
     print(f"Time taken: {end - start}")
     print(f"Test results: {test_results[0]}")
-    
+
     assert end - start < 60, "Evaluation took too long"
     assert test_results[0]["test_accuracy"] > 0.8, "Model accuracy is too low"
 
@@ -86,6 +94,7 @@ def test_model():
     print("Cleaning up downloaded model")
     cleanup_downloaded_model()
     print("Downloaded model cleaned up")
+
 
 if __name__ == "__main__":
     test_model()

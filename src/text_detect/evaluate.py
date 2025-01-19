@@ -7,32 +7,38 @@ import typer
 import wandb
 
 from text_detect.data import LLMDataset, load_data
-from text_detect.wandb_functions import load_wandb_env_vars, get_artifact_project_path, load_download_artifact_model, cleanup_downloaded_model
+from text_detect.wandb_functions import (
+    load_wandb_env_vars,
+    get_artifact_project_path,
+    load_download_artifact_model,
+    cleanup_downloaded_model,
+)
 
 from loguru import logger
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 logger.add(
-    "logs/evaluate.log",
-    rotation="100 MB",
-    level="INFO",
-    format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}"
+    "logs/evaluate.log", rotation="100 MB", level="INFO", format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}"
 )
+
 
 def evaluate(
     artifact: str = typer.Argument(..., help="Artifact path in format 'name:version'"),
-    config_name: str = typer.Option("default", "--config", "-c", help="Name of config file to use")
+    config_name: str = typer.Option("default", "--config", "-c", help="Name of config file to use"),
 ) -> None:
     """
     Evaluate a model using the specified artifact and config.
-    
+
     Args:
         artifact: Artifact path in format 'name:version'
         config_name: Name of the config file to configure the model with (without .yaml extension)
     """
     logger.info(f"Starting evaluation of model {artifact}")
 
-    # Load config directly using OmegaConf
     logger.info(f"Loading config: {config_name}")
     hydra.initialize(config_path="../../configs", version_base="1.1")
     cfg = hydra.compose(config_name=config_name)
@@ -61,7 +67,7 @@ def evaluate(
 
     # Load tokenizer
     logger.info(f"Loading tokenizer: {cfg.model.transformer_name}")
-    os.environ["TOKENIZERS_PARALLELISM"] = "false" # Set this environment variable before importing tokenizers
+    os.environ["TOKENIZERS_PARALLELISM"] = "false"  # Set this environment variable before importing tokenizers
     tokenizer = AutoTokenizer.from_pretrained(cfg.model.transformer_name)
 
     logger.info(f"Loading test data: {cfg.data.test_path}")
@@ -80,7 +86,7 @@ def evaluate(
     # Initialize trainer
     logger.info("Initializing PyTorch Lightning trainer")
     trainer = pl.Trainer(
-        accelerator='auto',
+        accelerator="auto",
         devices=1,
         log_every_n_steps=10,
         enable_progress_bar=True,
@@ -96,12 +102,13 @@ def evaluate(
         artifact.metadata[metric_name] = metric_value
     artifact.save()
 
-    if True: # Set to True to cleanup downloaded model
+    if True:  # Set to True to cleanup downloaded model
         logger.info("Cleaning up downloaded model")
         cleanup_downloaded_model()
         logger.info("Downloaded model cleaned up")
 
     logger.info("Evaluation complete")
+
 
 if __name__ == "__main__":
     typer.run(evaluate)

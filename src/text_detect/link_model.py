@@ -3,19 +3,22 @@ import wandb
 from typing import List, Optional
 from text_detect.wandb_functions import load_wandb_env_vars, get_artifact_project_path, get_registry_collection_path
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 def link_model(
     artifact: str = typer.Argument(..., help="Artifact path in format 'name:version'"),
     aliases: Optional[List[str]] = typer.Option(
-        None, "--alias", "-a", 
-        help="Aliases to apply to the model. Can be specified multiple times."
-    )
+        None, "--alias", "-a", help="Aliases to apply to the model. Can be specified multiple times."
+    ),
 ) -> None:
     """
     Link a specific model to the model registry with the given aliases.
 
     Both the team project and the organization registry and collection must be specified in the environment variables.
-    
+
     Args:
         artifact: Artifact path in format 'name:version'
         aliases: List of aliases to apply to the model, for example 'staging'
@@ -42,6 +45,7 @@ def link_model(
     artifact.link(target_path=artifact_registry_path, aliases=aliases)
     artifact.save()
     typer.echo(f"Artifact {artifact_project_path} linked to {artifact_registry_path} with aliases {aliases}.")
+
 
 if __name__ == "__main__":
     typer.run(link_model)

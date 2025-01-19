@@ -13,7 +13,7 @@ load_dotenv()
 
 
 logger.add(
-    "logs/stage_best_model.log",
+    "logs/stage_best_model_to_registry.log",
     rotation="100 MB",
     level="INFO",
     format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}",

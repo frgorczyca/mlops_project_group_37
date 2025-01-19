@@ -1,4 +1,8 @@
 from text_detect.wandb_functions import load_wandb_env_vars
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 def test_load_wandb_env_vars():
     """Test the load_wandb_env_vars function returns correct number of values."""

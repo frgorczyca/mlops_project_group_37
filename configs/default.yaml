@@ -6,7 +6,8 @@ defaults:
   - training: default
 
 logging:
-  enable_wandb: True # Set to True to enable Weights & Biases logging
+  enable_wandb: True # Set to True to enable Weights & Biases logging and saving
+  artifact_name: "llm-detector-model" # Name of the artifact which all models are saved to
   # Loggable metrics
   precision: True
   recall: False

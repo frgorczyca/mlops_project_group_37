@@ -18,6 +18,7 @@ from loguru import logger
 from omegaconf import OmegaConf
 
 from dotenv import load_dotenv
+
 load_dotenv()
 
 
@@ -81,17 +82,21 @@ def initialize_wandb_logger(cfg, logger, model, train_texts, val_texts):
         )
 
         # Log metadata
-        wandb_logger.experiment.config.update({
-            "total_parameters": sum(p.numel() for p in model.parameters()),
-            "trainable_parameters": sum(p.numel() for p in model.parameters() if p.requires_grad),
-            "train_samples": len(train_texts),
-            "val_samples": len(val_texts),
-            "python_version": sys.version,
-            "pytorch_version": torch.__version__,
-        })
+        wandb_logger.experiment.config.update(
+            {
+                "total_parameters": sum(p.numel() for p in model.parameters()),
+                "trainable_parameters": sum(p.numel() for p in model.parameters() if p.requires_grad),
+                "train_samples": len(train_texts),
+                "val_samples": len(val_texts),
+                "python_version": sys.version,
+                "pytorch_version": torch.__version__,
+            }
+        )
 
         # Watch model
-        wandb_logger.watch(model, log="all") # log gradients, parameter histogram and model topology, remove "all" if only log gradients
+        wandb_logger.watch(
+            model, log="all"
+        )  # log gradients, parameter histogram and model topology, remove "all" if only log gradients
         logger.info("Initialized W&B logger")
     else:
         wandb_logger = False
@@ -109,7 +114,7 @@ def train(cfg):
         os.path.join(hydra_path, "train.log"),
         rotation="100 MB",
         level="INFO",
-        format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}"
+        format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}",
     )
 
     logger.info("Starting training pipeline")
@@ -121,23 +126,26 @@ def train(cfg):
 
     # Load tokenizer
     logger.info(f"Loading tokenizer: {cfg.model.transformer_name}")
-    os.environ["TOKENIZERS_PARALLELISM"] = "false" # Set this environment variable before importing tokenizers
+    os.environ["TOKENIZERS_PARALLELISM"] = "false"  # Set this environment variable before importing tokenizers
     tokenizer = AutoTokenizer.from_pretrained(cfg.model.transformer_name)
-    
+
     # Load and split data
     logger.info("Loading data")
     train_val_texts, train_val_labels = load_data(cfg.data.train_path)
 
     train_texts, val_texts, train_labels, val_labels = train_test_split(
-        train_val_texts, train_val_labels,
+        train_val_texts,
+        train_val_labels,
         test_size=cfg.training.val_size,
         random_state=cfg.seed,
-        stratify=train_val_labels
+        stratify=train_val_labels,
     )
 
     # Create datasets
     logger.info("Creating datasets")
-    train_dataset = LLMDataset(texts=train_texts, labels=train_labels, tokenizer=tokenizer, max_length=cfg.data.max_length)
+    train_dataset = LLMDataset(
+        texts=train_texts, labels=train_labels, tokenizer=tokenizer, max_length=cfg.data.max_length
+    )
     val_dataset = LLMDataset(texts=val_texts, labels=val_labels, tokenizer=tokenizer, max_length=cfg.data.max_length)
 
     # Create dataloaders
@@ -159,7 +167,6 @@ def train(cfg):
         pin_memory=True,
     )
 
-
     # Initialize model
     logger.info("Initializing model")
     model = LLMDetector(cfg)
@@ -173,7 +180,7 @@ def train(cfg):
     # Initialize trainer
     trainer = pl.Trainer(
         max_epochs=cfg.training.max_epochs,
-        accelerator='auto',
+        accelerator="auto",
         devices=1,
         logger=wandb_logger,
         log_every_n_steps=10,
@@ -185,7 +192,6 @@ def train(cfg):
     )
 
     logger.info(f"Using device: {trainer.strategy.root_device}")
-
 
     # Train model
     logger.info("Starting model training")
@@ -211,12 +217,12 @@ def train(cfg):
 
             # Use Artifacts API to track model versions explicitly
             artifact = wandb.Artifact(
-                name="llm-detector-model", 
+                name=cfg.logging.artifact_name,
                 type="model",
                 description="Model artifact for LLM Detector with best validation accuracy",
-                metadata={"best_val_accuracy": float(best_val_accuracy)
-            })
-            
+                metadata={"best_val_accuracy": float(best_val_accuracy)},
+            )
+
             artifact.add_file(checkpoint_callback.best_model_path)
             wandb_logger.experiment.log_artifact(artifact)
             logger.info("Logged best model to W&B Artifacts")
