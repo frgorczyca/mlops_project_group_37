@@ -18,6 +18,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+print(os.getcwd())
+
 
 def test_model():
     config_name = "default.yaml"
@@ -27,7 +29,7 @@ def test_model():
     print(f"Starting model test of {artifact}")
 
     print(f"Loading config: {config_name}")
-    hydra.initialize(config_path="../../configs", version_base="1.1")
+    hydra.initialize(config_path="../../../configs", version_base="1.1")
     cfg = hydra.compose(config_name=config_name)
     print(f"Config: {cfg}")
 
