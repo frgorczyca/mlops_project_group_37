@@ -37,6 +37,7 @@ def load_download_artifact_model(cfg, api, artifact_project_path):
     artifact.download(root="models/downloads")
     file_name = artifact.files()[0].name
     model_path = os.path.join("models/downloads", file_name)
+    print(f"Downloaded model to {model_path}")
     return artifact, LLMDetector.load_from_checkpoint(model_path, cfg=cfg)
 
 
@@ -48,5 +49,7 @@ def cleanup_downloaded_model():
             item_path = os.path.join(download_path, item)
             if os.path.isfile(item_path):
                 os.remove(item_path)
+                print(f"Removed {item_path}")
             elif os.path.isdir(item_path):
                 shutil.rmtree(item_path)
+                print(f"Removed {item_path}")
