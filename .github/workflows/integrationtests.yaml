@@ -11,6 +11,8 @@ on:
 jobs:
   test:
     runs-on: ${{ matrix.operating-system }}
+    env:
+      WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
     strategy:
       matrix:
         operating-system: ["ubuntu-latest", "macos-latest"]
