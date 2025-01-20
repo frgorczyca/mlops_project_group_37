@@ -13,7 +13,8 @@ jobs:
     runs-on: ${{ matrix.operating-system }}
     env:
       WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
-      PYTORCH_MPS_HIGH_WATERMARK_RATIO: 0.8  # Set memory limit for MPS
+      PYTORCH_MPS_HIGH_WATERMARK_RATIO: 0.0  # Disable upper limit for memory allocations
+      TOKENIZERS_PARALLELISM: 'false'  # Disable tokenizer parallelism warnings
     strategy:
       matrix:
         operating-system: ["ubuntu-latest", "macos-latest"]
