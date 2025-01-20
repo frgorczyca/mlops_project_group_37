@@ -192,11 +192,12 @@ class LLMDetector(pl.LightningModule):
     def test_step(self, batch, batch_idx):
         return self._shared_step(batch, batch_idx, step_type="test")
 
-    def predict_step(self, batch, batch_idx):
+    def predict_step(self, batch, batch_idx, dataloader_idx=0):
         try:
             input_ids = batch["input_ids"]
             attention_mask = batch["attention_mask"]
-            return torch.argmax(self(input_ids, attention_mask), dim=1)
+            logits = self(input_ids, attention_mask)  # Get the raw logits
+            return logits
         except Exception as e:
             logger.error(f"Prediction failed: {str(e)}")
             raise

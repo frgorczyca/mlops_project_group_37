@@ -84,6 +84,20 @@ def evaluate_model(ctx: Context, artifact="", config="default"):
 
 
 @task
+def inference(ctx: Context, input_text="", model_alias="production"):
+    """
+    Run inference on the production model with the input text.
+
+    Args:
+        input_text: Text to run inference on
+        model_alias: Model alias to use (default: production)
+    """
+    command = f"python src/{PROJECT_NAME}/inference.py {shlex.quote(input_text)} --model-alias {model_alias}"
+
+    ctx.run(command, echo=True, pty=not WINDOWS)
+
+
+@task
 def link_to_registry(ctx: Context, artifact="", aliases=None):
     """
     Link a specific team project model to the organization registry collection with the given aliases.

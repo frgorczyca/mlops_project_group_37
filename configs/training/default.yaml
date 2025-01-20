@@ -7,7 +7,7 @@ model_name: model.pth
 # Dataloaders
 val_size: 0.2
 batch_size: 16
-num_workers: 8
+num_workers: 4
 
 # Trainer hyperparamters
 max_epochs: 2
