@@ -1,4 +1,4 @@
-name: Unit Tests
+name: Unit tests
 
 on:
   push:
@@ -35,7 +35,7 @@ jobs:
           pip install -e .
           pip list
 
-      - name: Run tests & coverage
+      - name: Run unit tests & code coverage
         run: |
           coverage run --source=src/text_detect -m  pytest src/tests/unittests/
           coverage report -m
