@@ -41,4 +41,5 @@ jobs:
 
       - name: Run API integration tests
         run: |
+          export PYTORCH_MPS_HIGH_WATERMARK_RATIO=0.0
           pytest src/tests/integrationtests/test_apis.py -v --capture=no
