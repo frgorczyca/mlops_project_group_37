@@ -1,5 +1,0 @@
-steps:
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['build','-f', 'train.dockerfile', '-t', 'eu-north1-docker.pkg.dev/mlops37/text-detect-storage/train', '.']
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['push', 'europe-north1-docker.pkg.dev/mlops37/text-detect-storage']
