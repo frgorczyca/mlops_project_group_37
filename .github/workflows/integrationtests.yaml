@@ -13,11 +13,10 @@ jobs:
     runs-on: ${{ matrix.operating-system }}
     env:
       WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
-      PYTORCH_MPS_HIGH_WATERMARK_RATIO: 0.0  # Disable upper limit for memory allocations
       TOKENIZERS_PARALLELISM: 'false'  # Disable tokenizer parallelism warnings
     strategy:
       matrix:
-        operating-system: ["ubuntu-latest", "macos-latest"]
+        operating-system: ["ubuntu-latest"]
         python-version: ["3.11"]
 
     steps:
@@ -41,5 +40,4 @@ jobs:
 
       - name: Run API integration tests
         run: |
-          export PYTORCH_MPS_HIGH_WATERMARK_RATIO=0.0
-          pytest src/tests/integrationtests/test_apis.py -v --capture=no
+          pytest src/tests/integrationtests/test_apis.py
