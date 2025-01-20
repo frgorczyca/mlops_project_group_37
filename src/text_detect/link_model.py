@@ -38,11 +38,15 @@ def link_model(
 
     if full_registry_path:
         # Load artifact from full registry path and link to organization registry with given aliases
-        artifact_registry_path = artifact
-        artifact = api.artifact(artifact_registry_path)
+        artifact_collection_path = artifact
+        artifact_registry_path = artifact_collection_path.rsplit("/", 1)[0]
+        print(f"artifact_collection_path: {artifact_collection_path}")
+        print(f"artifact_registry_path: {artifact_registry_path}")
+
+        artifact = api.artifact(artifact_collection_path)
         artifact.link(target_path=artifact_registry_path, aliases=aliases)
         artifact.save()
-        typer.echo(f"Artifact {artifact_registry_path} linked with aliases {aliases}.")
+        typer.echo(f"Artifact {artifact_collection_path} linked to {artifact_registry_path} with aliases {aliases}.")
     else:
         # Extract artifact name and version
         artifact_name, artifact_name_version = artifact.split(":")
