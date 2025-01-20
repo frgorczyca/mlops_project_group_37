@@ -40,7 +40,7 @@ def link_model(
         # Load artifact from full registry path and link to organization registry with given aliases
         artifact_registry_path = artifact
         artifact = api.artifact(artifact_registry_path)
-        artifact.link(target_path=artifact_registry_path, aliases=aliases)
+        artifact.aliases.extend(aliases)
         artifact.save()
         typer.echo(f"Artifact {artifact_registry_path} linked with aliases {aliases}.")
     else:
