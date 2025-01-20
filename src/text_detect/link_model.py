@@ -42,7 +42,7 @@ def link_model(
         artifact = api.artifact(artifact_registry_path)
         artifact.aliases.extend(aliases)
         artifact.save()
-        typer.echo(f"Artifact {artifact_registry_path} linked with aliases {aliases}.")
+        typer.echo(f"Artifact {artifact_collection_path} linked to {artifact_registry_path} with aliases {aliases}.")
     else:
         # Extract artifact name and version
         artifact_name, artifact_name_version = artifact.split(":")
