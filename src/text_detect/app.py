@@ -91,8 +91,8 @@ def load_model():
         cfg = OmegaConf.create(wb_config)
 
         if torch.backends.mps.is_available():
-            # For MacOS, set memory limit
-            torch.backends.mps.set_per_process_memory_fraction(0.0)
+            # For MacOS, set memory limit to 0
+            torch.mps.set_per_process_memory_fraction(0.0)
 
         _, model = load_download_artifact_model(cfg, api, production_model_artifact_path)
 
