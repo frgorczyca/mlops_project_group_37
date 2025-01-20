@@ -96,4 +96,4 @@ jobs:
     - name: Add production alias
       run: |
         cd src/text_detect
-        python link_model.py $MODEL_NAME -a production --full-registry-path
+        python link_model.py "$MODEL_NAME" -a production --full-registry-path
