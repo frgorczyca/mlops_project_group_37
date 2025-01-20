@@ -42,6 +42,7 @@ def link_model(
         artifact = api.artifact(artifact_registry_path)
         artifact.link(target_path=artifact_registry_path, aliases=aliases)
         artifact.save()
+
         typer.echo(f"Artifact {artifact_registry_path} linked with aliases {aliases}.")
     else:
         # Extract artifact name and version
