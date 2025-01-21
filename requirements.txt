@@ -13,4 +13,6 @@ loguru==0.7.3
 python-dotenv==1.0.1
 httpx==0.28.1
 locust==2.32.6
+dvc
+dvc-gs
 bentoml==1.3.20
