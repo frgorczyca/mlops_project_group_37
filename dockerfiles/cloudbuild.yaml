@@ -3,3 +3,5 @@ steps:
   args: ['build','-f', 'dockerfiles/train.dockerfile', '-t', 'europe-north1-docker.pkg.dev/mlops37/text-detect-storage/train', '.']
 - name: 'gcr.io/cloud-builders/docker'
   args: ['push', 'europe-north1-docker.pkg.dev/mlops37/text-detect-storage/train']
+options:
+  logging: CLOUD_LOGGING_ONLY
