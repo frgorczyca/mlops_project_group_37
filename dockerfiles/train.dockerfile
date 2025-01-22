@@ -13,7 +13,7 @@ COPY data/ data/
 RUN ls -la
 
 RUN pip install -r requirements.txt --no-cache-dir
-RUN python --version
+RUN python . --no-deps --no-cache-dir --verbose
 
 # Set entry point, i.e. which file we run with which argument when running the docker container.
 # The -u flag makes it print to console rather than the docker log file.
