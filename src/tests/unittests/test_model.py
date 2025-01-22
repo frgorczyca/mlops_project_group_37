@@ -1,9 +1,9 @@
 """
 Script to test the our model (model.py)
 """
+
 import torch
 from text_detect.model import LLMDetector
-
 
 
 def test_model():

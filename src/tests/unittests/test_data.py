@@ -7,8 +7,6 @@ from torch.utils.data import Dataset
 from text_detect import data
 import pytest
 from pathlib import Path
-import os
-import pdb
 
 
 @pytest.mark.parametrize("dataset_path", ["data/raw_data.csv"])
@@ -47,6 +45,7 @@ def setup_test_environment(tmp_path):
 
     return input_folder, output_folder, input_file
 
+
 def test_dataset_preprocess(setup_test_environment):
     """Test method preprocess"""
     input_folder, output_folder, input_file = setup_test_environment
@@ -61,7 +60,8 @@ def test_dataset_preprocess(setup_test_environment):
     copied_file = output_folder / input_file.name
     assert copied_file.exists()
     assert copied_file.read_text() == "sample data"
-    
+
+
 ## only tests w version="latest". Not sure if we need to test for other versions?
 def test_dataset_get_version(setup_test_environment):
     """Test method get_version"""
@@ -70,4 +70,3 @@ def test_dataset_get_version(setup_test_environment):
     dataset.preprocess(output_folder=Path(output_folder))
     dataset.get_version(Path(output_folder))
     assert dataset.data_path == output_folder / input_file.name
-    
