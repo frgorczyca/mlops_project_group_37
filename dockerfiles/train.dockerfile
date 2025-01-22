@@ -14,7 +14,7 @@ RUN ls -la
 
 RUN pip install -r requirements.txt --no-cache-dir
 
-ENV PYTHONPATH=/src
+ENV PYTHONPATH=/workspace/src
 
 # Set entry point, i.e. which file we run with which argument when running the docker container.
 # The -u flag makes it print to console rather than the docker log file.
