@@ -1,6 +1,6 @@
 program: train.py  # your training entry script
 method: bayes  # or "random" or "grid"
-metric: 
+metric:
   name: val_loss
   goal: minimize
 

@@ -1,0 +1,6 @@
+{
+  "action": "staged_model",
+  "client_payload": {
+      "artifact_version_string": "mlops_project_group_37/wandb-registry-Text detect registry/Trained LLM detector:v3"
+  }
+}

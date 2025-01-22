@@ -1,5 +1,0 @@
-# configs/wandb/default.yaml
-use_wandb: True  # Set to True to enable Weights & Biases logging
-save_artifact: True  # Set to True to save artifact in Weights & Biases registry
-project_name: "text-detect"
-run_name: "test-run"

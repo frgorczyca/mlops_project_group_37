@@ -4,11 +4,18 @@ defaults:
   - optimizer: adamw
   - data: default
   - training: default
-  - wandb: default
+
+logging:
+  enable_wandb: True # Set to True to enable Weights & Biases logging and saving
+  artifact_name: "llm-detector-model" # Name of the artifact which all models are saved to
+  # Loggable metrics
+  precision: True
+  recall: False
+  f1: False
+  auroc: False
+
+seed: 42 # Random seed for reproducibility
 
 hydra:
   job:
-    chdir: false
-
-# Random seed for reproducibility
-seed: 42
+    chdir: false # Stops hydra from changing the CWD

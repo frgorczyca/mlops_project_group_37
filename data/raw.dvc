@@ -1,0 +1,39 @@
+outs:
+- hash: md5
+  path: raw
+  files:
+  - relpath: .gitkeep
+    md5: d41d8cd98f00b204e9800998ecf8427e
+    size: 0
+    cloud:
+      remote_storage:
+        etag: 08ee86b2e1d8858b031001
+        version_id: '1737423997141870'
+  - relpath: train_drcat_01.csv
+    md5: 5a06ee87471577ea226ba8f9b010013b
+    size: 74014730
+    cloud:
+      remote_storage:
+        etag: 08ecdc9de1d8858b031001
+        version_id: '1737423996808812'
+  - relpath: train_drcat_02.csv
+    md5: 3fd0371377b6dd753feb3085e245d534
+    size: 93737079
+    cloud:
+      remote_storage:
+        etag: 08aeed88edd8858b031001
+        version_id: '1737424021632686'
+  - relpath: train_drcat_03.csv
+    md5: 70bd241710c1101d8d8d81210a5b99aa
+    size: 98995598
+    cloud:
+      remote_storage:
+        etag: 08d5aab3edd8858b031001
+        version_id: '1737424022328661'
+  - relpath: train_drcat_04.csv
+    md5: 39f19dc9c90ea56f4a813f042965671a
+    size: 103653768
+    cloud:
+      remote_storage:
+        etag: 08a4a3cfedd8858b031001
+        version_id: '1737424022786468'
