@@ -191,7 +191,7 @@ def train(cfg):
         callbacks=callbacks,
         # gradient_clip_val=1.0, # Prevent exploding gradients
         enable_progress_bar=True,
-        precision=32,  # cfg.training.precision,
+        precision=cfg.training.precision,
     )
 
     logger.info(f"Using device: {trainer.strategy.root_device}")
