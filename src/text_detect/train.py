@@ -132,7 +132,7 @@ def train(cfg):
     # Load and split data
     logger.info("Loading data")
     if os.getenv("TRAIN_ON_CLOUD") == "True":
-        train_texts, train_labels = load_data(os.getenv("CLOUD_DATA_PATH"))
+        train_val_texts, train_val_labels = load_data(os.getenv("CLOUD_DATA_PATH"))
     else:
         train_val_texts, train_val_labels = load_data(cfg.data.train_path)
 
