@@ -178,6 +178,7 @@ cython_debug/
 
 # Ignore everything in data/raw but not the folder itself
 data/raw/*
+data/scripts/mlops37_service_account.json
 !data/raw/.gitkeep
 
 data/processed/*
