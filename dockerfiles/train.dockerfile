@@ -15,7 +15,7 @@ RUN ls -la
 RUN pip install -r requirements.txt --no-cache-dir
 
 # Set the working directory to the root of the docker container
-WORKDIR /
+WORKDIR /workspace
 # ENV PYTHONPATH=/workspace/src
 
 # Set entry point, i.e. which file we run with which argument when running the docker container.
