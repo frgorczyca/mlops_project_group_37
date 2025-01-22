@@ -1,3 +1,7 @@
+"""
+Script to test the our data (data.py)
+"""
+
 from torch.utils.data import Dataset
 
 from text_detect import data
@@ -60,6 +64,7 @@ def test_dataset_preprocess(setup_test_environment):
     
 ## only tests w version="latest". Not sure if we need to test for other versions?
 def test_dataset_get_version(setup_test_environment):
+    """Test method get_version"""
     input_folder, output_folder, input_file = setup_test_environment
     dataset = data.DatasetManager(Path(input_folder))
     dataset.preprocess(output_folder=Path(output_folder))
