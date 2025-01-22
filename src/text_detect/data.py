@@ -3,7 +3,7 @@ from pathlib import Path
 from torch.utils.data import Dataset
 import shutil
 import csv
-
+import pdb
 
 class DatasetManager(Dataset):
     """My custom dataset."""
@@ -35,9 +35,10 @@ class DatasetManager(Dataset):
             if item.is_file():
                 shutil.copy(item, output_folder / item.name)
 
-        self.get_version(output_folder)
+        #self.get_version(output_folder)
 
     def get_version(self, output_folder: Path, version: str = "latest") -> None:
+        """Sets the dataset path to a specific version"""
         if version == "latest":
             highest_number = -1
             highest_file = None
@@ -50,7 +51,6 @@ class DatasetManager(Dataset):
                             highest_file = item
                     except ValueError:
                         continue
-
             if highest_file:
                 print(f"File with the highest number in the name: {highest_file}")
             else:
@@ -59,7 +59,7 @@ class DatasetManager(Dataset):
 
             self.data_path = output_folder / highest_file.name
         else:
-            self.data_path = output_folder / f"data_{version}.csv"
+            self.data_path = output_folder / Path(f"data_{version}.csv")
 
 
 def preprocess(raw_data_path: Path, output_folder: Path) -> None:
@@ -67,6 +67,7 @@ def preprocess(raw_data_path: Path, output_folder: Path) -> None:
     dataset = DatasetManager(raw_data_path)
     dataset.preprocess(output_folder)
     dataset.get_version(output_folder)
+    pdb.set_trace()
 
 
 if __name__ == "__main__":
