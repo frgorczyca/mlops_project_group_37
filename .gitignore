@@ -197,3 +197,6 @@ models/*
 
 # wandb logging
 wandb/
+
+#vertex_ai/
+config_cpu.yaml
