@@ -1,0 +1,23 @@
+workerPoolSpecs:
+    machineSpec:
+        machineType: n1-highmem-2
+    replicaCount: 1
+    containerSpec:
+        imageUri: europe-north1-docker.pkg.dev/mlops37/text-detect-storage/train:latest
+        env:
+        - name: WANDB_API_KEY
+          value: $WANDB_API_KEY
+        - name: WANDB_ENTITY
+          value: $WANDB_ENTITY
+        - name: WANDB_PROJECT
+          value: $WANDB_PROJECT
+        - name: WANDB_REGISTRY
+          value: $WANDB_REGISTRY
+        - name: WANDB_COLLECTION
+          value: $WANDB_COLLECTION
+        - name: WANDB_TEAM
+          value: $WANDB_TEAM
+        - name: TRAIN_ON_CLOUD
+          value: "True"
+        - name: CLOUD_DATA_PATH
+          value: "/gcs/text-detect-raw-data/raw/train_drcat_04.csv"
