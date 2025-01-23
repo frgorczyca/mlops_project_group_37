@@ -154,7 +154,7 @@ def stage_best_model(ctx: Context, artifact_name="", type="model", metric="best_
 
 # API commands
 @task
-def run_fastapi(ctx: Context, host="0.0.0.0", port=8000):
+def run_fastapi(ctx: Context, host="0.0.0.0", port=5445):
     """
     Run the FastAPI API.
 
@@ -176,6 +176,15 @@ def run_bentoml(ctx: Context):
 
     ctx.run("bentoml build", echo=True, pty=not WINDOWS)
     ctx.run("bentoml serve src.text_detect.bentoml_service:TextDetectionService", echo=True, pty=not WINDOWS)
+
+
+# Docker commands
+@task
+def run_frontend(ctx: Context):
+    """
+    Run the frontend application. Works if run_bentoml is operative.
+    """
+    ctx.run()
 
 
 # Testing commands
