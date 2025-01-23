@@ -3,6 +3,7 @@ import requests
 import streamlit as st
 from google.cloud import run_v2
 
+
 def get_backend_url():
     """Get the URL of the backend service."""
     parent = "projects/my-personal-mlops-project/locations/europe-west1"
@@ -12,6 +13,7 @@ def get_backend_url():
         if service.name.split("/")[-1] == "production-model":
             return service.uri
     return os.environ.get("BACKEND", None)
+
 
 def text_detect(text_data: str, backend: str):
     """
@@ -36,14 +38,14 @@ def text_detect(text_data: str, backend: str):
 def main() -> None:
     """Main function of the Streamlit frontend."""
     # IMPORTANT: Include the scheme in the URL
-    backend = "http://localhost:3000"#get_backend_url()
+    backend = "http://localhost:3000"  # get_backend_url()
 
     st.title("Text Classification Demo")
 
     uploaded_file = st.file_uploader(
-        "Upload a text file", 
+        "Upload a text file",
         type=["txt"],  # Only .txt files allowed
-        help="Upload plain text in UTF-8 format."
+        help="Upload plain text in UTF-8 format.",
     )
 
     if uploaded_file is not None:
