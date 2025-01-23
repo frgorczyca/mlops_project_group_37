@@ -58,16 +58,16 @@ will check the repositories and the code to verify your answers.
     are using (M2+M6)
 * [X] Remember to comply with good coding practices (`pep8`) while doing the project (M7)
 * [X] Do a bit of code typing and remember to document essential parts of your code (M7)
-* [ ] Setup version control for your data or part of your data (M8)
+* [X] Setup version control for your data or part of your data (M8)
 * [X] Add command line interfaces and project commands to your code where it makes sense (M9)
-* [ ] Construct one or multiple docker files for your code (M10)
-* [ ] Build the docker files locally and make sure they work as intended (M10)
+* [X] Construct one or multiple docker files for your code (M10)
+* [X] Build the docker files locally and make sure they work as intended (M10)
 * [X] Write one or multiple configurations files for your experiments (M11)
 * [X] Used Hydra to load the configurations and manage your hyperparameters (M11)
 * [ ] Use profiling to optimize your code (M12)
 * [X] Use logging to log important events in your code (M14)
 * [X] Use Weights & Biases to log training progress and other important metrics/artifacts in your code (M14)
-* [ ] Consider running a hyperparameter optimization sweep (M14)
+* [X] Consider running a hyperparameter optimization sweep (M14)
 * [X] Use PyTorch-lightning (if applicable) to reduce the amount of boilerplate in your code (M15)
 
 ### Week 2
@@ -79,16 +79,16 @@ will check the repositories and the code to verify your answers.
 * [X] Add caching and multi-os/python/pytorch testing to your continuous integration (M17)
 * [X] Add a linting step to your continuous integration (M17)
 * [X] Add pre-commit hooks to your version control setup (M18)
-* [ ] Add a continues workflow that triggers when data changes (M19)
+* [X] Add a continues workflow that triggers when data changes (M19)
 * [X] Add a continues workflow that triggers when changes to the model registry is made (M19)
-* [ ] Create a data storage in GCP Bucket for your data and link this with your data version control setup (M21)
-* [ ] Create a trigger workflow for automatically building your docker images (M21)
-* [ ] Get your model training in GCP using either the Engine or Vertex AI (M21)
+* [X] Create a data storage in GCP Bucket for your data and link this with your data version control setup (M21)
+* [X] Create a trigger workflow for automatically building your docker images (M21)
+* [X] Get your model training in GCP using either the Engine or Vertex AI (M21)
 * [X] Create a FastAPI application that can do inference using your model (M22)
 * [ ] Deploy your model in GCP using either Functions or Run as the backend (M23)
-* [ ] Write API tests for your application and setup continues integration for these (M24)
-* [ ] Load test your application (M24)
-* [ ] Create a more specialized ML-deployment API using either ONNX or BentoML, or both (M25)
+* [X] Write API tests for your application and setup continues integration for these (M24)
+* [X] Load test your application (M24)
+* [X] Create a more specialized ML-deployment API using either ONNX or BentoML, or both (M25)
 * [ ] Create a frontend for your API (M26)
 
 ### Week 3
@@ -109,7 +109,7 @@ will check the repositories and the code to verify your answers.
 * [ ] Revisit your initial project description. Did the project turn out as you wanted?
 * [ ] Create an architectural diagram over your MLOps pipeline
 * [ ] Make sure all group members have an understanding about all parts of the project
-* [ ] Uploaded all your code to GitHub
+* [X] Uploaded all your code to GitHub
 
 ## Group information
 
@@ -129,7 +129,7 @@ will check the repositories and the code to verify your answers.
 >
 > Answer:
 
---- question 2 fill here ---
+s214238, s233664, s183540, s233190
 
 ### Question 3
 > **A requirement to the project is that you include a third-party package not covered in the course. What framework**
@@ -143,7 +143,7 @@ will check the repositories and the code to verify your answers.
 >
 > Answer:
 
---- question 3 fill here ---
+For our project, we needed a pretrained transformer for classifying essays as either human- or AI-written, and so we decided to use the open-source Transformers library from HuggingFace. Specifically we used the bert-tiny model, which is a smaller, pre-trained BERT variant. Its smaller size allowed for faster training, whilst still maintaing good performance. This allowed for faster development, by enabling us to train the model locally with GPU acceleration on a MacBook Pro M2 using Metal Performance Shaders (MPS) backend for GPU training within only a few minutes. The smaller file size also made uploading and fetching trained models from Weights and Biases faster and less demanding.
 
 ## Coding environment
 
@@ -163,7 +163,20 @@ will check the repositories and the code to verify your answers.
 >
 > Answer:
 
---- question 4 fill here ---
+Our project employs conda for environment management integrated with pip for package dependencies. The dependency structure is organized through requirements.txt for core dependencies and setup.py for development packages.
+To copy our development environment, the following commands need to be run:
+1. Environment Creation
+   - Create isolated conda environment: conda create --name <project_name> python=3.11 --no-default-packages --yes
+   - Activate environment: conda activate <project_name>
+2.  Dependency Installation
+    - Update core tools: pip install -U pip setuptools wheel
+    - Install project requirements: pip install -r requirements.txt
+    - Install project in editable mode: pip install -e .
+3. Development Setup (Only needed for developers)
+   - Install development dependencies: pip install -e .["dev"]
+   - Install type checking tools: pip install -e .["types"]
+   - Configure pre-commit hooks: pre-commit install
+All of these have equivalent executable tasks that can be run semi-automatically using the invoke library. An invoke task also exists for downloading the unprocessed dataset locally.
 
 ### Question 5
 
@@ -179,7 +192,7 @@ will check the repositories and the code to verify your answers.
 >
 > Answer:
 
---- question 5 fill here ---
+Using the cookiecutter template, we filled configs/ with a distributed hydra config, which allows for easy selection of config paramters before initializing a training run, and for automatic documentation of the run's config. .github/ and .dcv/ were filled with github workflow actions and dvc cloud setup respectively. Dockerfiles were moved into their own foulder to decrease clutter in the main directory. src/text_detect/ was filled with our source code, and tests/ was moved into src/, as we found it was more intuative to have the project source code and its tests share a directory. checkpoints/ and downloads/ were added in models/ to distinguish between checkpoints generated during training and models fetched from the W&B registry.
 
 ### Question 6
 
@@ -243,7 +256,7 @@ will check the repositories and the code to verify your answers.
 >
 > Answer:
 
---- question 9 fill here ---
+We made use of branches to segregate development of different features amongst group members, and PRs to protect our main branch by implementing merge checks, enabling us to always have a working version of our project. Our branches were at times chaotic, as multiple group members could be working on multiple branches for different features, and sometimes branches were abandoned without being properly deleted, either locally or remotely. However this never caused any issues in development or for our workflows, as group members always had a good overview of the features they were in charge of developing, which could then be merged via a PR upon completion. Many group members felt they got better at understanding and working with git as part of a larger project.
 
 ### Question 10
 
@@ -294,7 +307,7 @@ will check the repositories and the code to verify your answers.
 >
 > Answer:
 
---- question 12 fill here ---
+We used hydra for managing the configuration of our model training. This consists of a primary config file, that holds top-level config such as the global seed, and further points to subconfigs for our data, model, optimizer and training hyperparamters. When a run is executed, hydra automatically logs the used config, but it is also saved in the W&B artifact metadata so it can be retrieved when the model is downloaded from the registry.
 
 ### Question 13
 
@@ -447,6 +460,9 @@ will check the repositories and the code to verify your answers.
 >
 > Answer:
 
+We wrote two API's, one using FastAPI and the other using BentoML. However both in essence use the same inference logic and structure. Both API's on startup fetch the production-tagged model from our W&B registry, and initialize it using the config it was trained on. The startup takes a few seconds, but is relatively quickly ready for clients. The clients can then send an essay in the form of a text string, which is then tokenized and fed into the model, and returns either the class "Human" or "AI". The BentoML API specifically supports adaptive batching. Both API's support logging to asses issues.
+
+
 --- question 23 fill here ---
 
 ### Question 24
@@ -560,6 +576,11 @@ will check the repositories and the code to verify your answers.
 > Answer:
 
 --- question 30 fill here ---
+The overall struggles of the project depends on the responsibilites of each team member.
+Implementing Weights & Biases functionality proved quite challenging. As our model was built with pytorch lightning, we wanted to use the exclusive WandbLogger object, but getting logging and artifact saving to work properly during training was difficult, as the documentation is quite poor,so lots of debugging and testing had to be done. There were also lots of quirks to iron out when retrieving and re-initializing saved artifact models.
+Additionally, getting the github dispatch workflow that triggers when a model is staged to work also took quite a while, as each error had to be fixed on a branch and then merged with main via a PR before it could be re-tested, as the workflow only triggers on main (it could be tested locally, but took even longer to build then).
+!!!ADD DOCKER AND CLOUD STRUGGLES!!!
+In hindsight, the solutions to these struggles seem trivial, but actually developing them took huge effort.
 
 ### Question 31
 
@@ -577,4 +598,8 @@ will check the repositories and the code to verify your answers.
 > *We have used ChatGPT to help debug our code. Additionally, we used GitHub Copilot to help write some of our code.*
 > Answer:
 
---- question 31 fill here ---
+Student s214238 was in charge of developing the functionality surrounding model configuration, training, Weights and Biases integration, inference, and developing APIs, as well as implementing integration and performance tests.
+Student s233664 was ...
+Student s183540 was ...
+Student s233190 was ...
+A mixture of ChatGPT, Claude and GitHub Copilot were used for debugging code, providing implementation suggestions and for automatic documentation in some places.
