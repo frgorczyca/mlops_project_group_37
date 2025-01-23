@@ -5,7 +5,7 @@ from text_detect.wandb_functions import load_wandb_env_vars, load_download_artif
 from omegaconf import OmegaConf
 import pytorch_lightning as pl
 import wandb
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import TensorDataset, DataLoader
 import typer
 
 
@@ -54,25 +54,16 @@ def inference(
         return_tensors="pt",
     )
 
-    # Create a DataLoader
-    class SinglePredictionDataset(Dataset):
-        def __init__(self, input_ids, attention_mask):
-            self.input_ids = input_ids
-            self.attention_mask = attention_mask
-
-        def __len__(self):
-            return 1
-
-        def __getitem__(self, idx):
-            return {"input_ids": self.input_ids[0], "attention_mask": self.attention_mask[0]}
-
-    dataset = SinglePredictionDataset(encoded_input["input_ids"], encoded_input["attention_mask"])
-    predict_dataloader = DataLoader(dataset, batch_size=1)
+    dataloader = DataLoader(
+        TensorDataset(encoded_input["input_ids"], encoded_input["attention_mask"]),
+        batch_size=1,  # Process all inputs in one batch
+        shuffle=False,
+    )
 
     trainer = pl.Trainer(accelerator="auto", devices=1)
 
     # Run inference
-    predictions = trainer.predict(model, predict_dataloader)
+    predictions = trainer.predict(model, dataloader)
 
     logits = predictions[0].squeeze()  # Remove batch dimension
 

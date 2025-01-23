@@ -10,10 +10,12 @@ RUN apt update && \
 COPY requirements.txt requirements.txt
 COPY src/ src/
 COPY data/ data/
-RUN ls -la
+COPY configs/ configs/
 
 RUN pip install -r requirements.txt --no-cache-dir
-RUN python --version
+
+# Set the working directory to the root of the docker container
+ENV PYTHONPATH=/workspace/src
 
 # Set entry point, i.e. which file we run with which argument when running the docker container.
 # The -u flag makes it print to console rather than the docker log file.

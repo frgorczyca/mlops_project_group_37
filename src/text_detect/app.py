@@ -4,12 +4,13 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 import torch
 from transformers import AutoTokenizer
-from text_detect.wandb_functions import load_wandb_env_vars, load_download_artifact_model, cleanup_downloaded_model
+from text_detect.wandb_functions import load_download_artifact_model, cleanup_downloaded_model
 from omegaconf import OmegaConf
 import pytorch_lightning as pl
 import wandb
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import TensorDataset, DataLoader
 import logging
+import typer
 
 # Initialize logging
 logging.basicConfig(level=logging.INFO)
@@ -56,18 +57,6 @@ class InferenceResponse(BaseModel):
     raw_logits: list
 
 
-class SinglePredictionDataset(Dataset):
-    def __init__(self, input_ids, attention_mask):
-        self.input_ids = input_ids
-        self.attention_mask = attention_mask
-
-    def __len__(self):
-        return 1
-
-    def __getitem__(self, idx):
-        return {"input_ids": self.input_ids[0], "attention_mask": self.attention_mask[0]}
-
-
 def load_model():
     """Load model and tokenizer if not already loaded."""
     global model, tokenizer, cfg, trainer
@@ -82,7 +71,7 @@ def load_model():
             "group-37/text-detect/test-run-model:v1"
         )
 
-        api_key, _, _, _, _, _ = load_wandb_env_vars()
+        api_key = os.getenv("WANDB_API_KEY")
         api = wandb.Api(api_key=api_key)
         artifact = api.artifact(production_model_artifact_path)
 
@@ -189,12 +178,14 @@ async def predict(request: InferenceRequest):
             return_tensors="pt",
         )
 
-        # Create dataset and dataloader
-        dataset = SinglePredictionDataset(encoded_input["input_ids"], encoded_input["attention_mask"])
-        predict_dataloader = DataLoader(dataset, batch_size=1)
+        dataloader = DataLoader(
+            TensorDataset(encoded_input["input_ids"], encoded_input["attention_mask"]),
+            batch_size=1,  # Process all inputs in one batch
+            shuffle=False,
+        )
 
         # Run inference
-        predictions = trainer.predict(model, predict_dataloader)
+        predictions = trainer.predict(model, dataloader)
 
         # Process results
         logits = predictions[0].squeeze()
@@ -228,7 +219,14 @@ async def health_check():
     return {"status": "healthy", "model_loaded": model is not None}
 
 
-if __name__ == "__main__":
+def api(
+    host: str = typer.Option("0.0.0.0", "--host", "-h", help="Host to bind to"),
+    port: int = typer.Option(8000, "--port", "-p", help="Port to bind to"),
+):
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host=host, port=port)
+
+
+if __name__ == "__main__":
+    typer.run(api)

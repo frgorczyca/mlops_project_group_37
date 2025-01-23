@@ -1,0 +1,19 @@
+service: src.text_detect.bentoml_service:TextDetectionService
+labels:
+  owner: mlops-group-37
+  project: text-detect
+description: "Text Detection Service"
+include:
+  - "src/text_detect/"
+python:
+  packages:
+    - bentoml
+    - transformers
+    - torch
+    - pytorch-lightning
+    - wandb
+    - loguru
+
+# To build and serve this file, from the repo directory run:
+# - bentoml build
+# - bentoml serve src.text_detect.bentoml_service:TextDetectionService

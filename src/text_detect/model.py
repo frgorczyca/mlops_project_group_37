@@ -192,10 +192,9 @@ class LLMDetector(pl.LightningModule):
     def test_step(self, batch, batch_idx):
         return self._shared_step(batch, batch_idx, step_type="test")
 
-    def predict_step(self, batch, batch_idx, dataloader_idx=0):
+    def predict_step(self, batch, batch_idx):
         try:
-            input_ids = batch["input_ids"]
-            attention_mask = batch["attention_mask"]
+            input_ids, attention_mask = batch
             logits = self(input_ids, attention_mask)  # Get the raw logits
             return logits
         except Exception as e:

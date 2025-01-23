@@ -40,13 +40,13 @@ def pre_commit_install(ctx: Context) -> None:
     ctx.run("pre-commit install", echo=True, pty=not WINDOWS)
 
 
+# Data commands
 @task
 def download_data(ctx: Context) -> None:
     """Download data from Kaggle."""
     ctx.run("sh data/downloadKaggleDataset.sh", echo=True, pty=not WINDOWS)
 
 
-# Project commands
 @task
 def preprocess_data(ctx: Context) -> None:
     """Preprocess data."""
@@ -59,6 +59,7 @@ def analyze_data(ctx: Context) -> None:
     ctx.run(f"python src/{PROJECT_NAME}/analysis.py", echo=True, pty=not WINDOWS)
 
 
+# Model commands
 @task
 def train(ctx: Context) -> None:
     """Train model."""
@@ -97,6 +98,7 @@ def inference(ctx: Context, input_text="", model_alias="production"):
     ctx.run(command, echo=True, pty=not WINDOWS)
 
 
+# Weights and Biases commands
 @task
 def link_to_registry(ctx: Context, artifact="", aliases=None):
     """
@@ -148,6 +150,32 @@ def stage_best_model(ctx: Context, artifact_name="", type="model", metric="best_
     ).strip()
 
     ctx.run(command, echo=True, pty=not WINDOWS)
+
+
+# API commands
+@task
+def run_fastapi(ctx: Context, host="0.0.0.0", port=8000):
+    """
+    Run the FastAPI API.
+
+    Args:
+        host: Host address to bind to
+        port: Port number to listen on
+    """
+
+    command = f"uvicorn src.text_detect.app:app --host {shlex.quote(host)} --port {port} "
+
+    ctx.run(command, echo=True, pty=not WINDOWS)
+
+
+@task
+def run_bentoml(ctx: Context):
+    """
+    Run the BentoML API. Runs on http://localhost:3000/ by default.
+    """
+
+    ctx.run("bentoml build", echo=True, pty=not WINDOWS)
+    ctx.run("bentoml serve src.text_detect.bentoml_service:TextDetectionService", echo=True, pty=not WINDOWS)
 
 
 # Testing commands
