@@ -1,0 +1,12 @@
+# config_cpu.yaml
+workerPoolSpecs:
+    machineSpec:
+        machineType: n1-highmem-2
+    replicaCount: 1
+    containerSpec:
+        imageUri: europe-north1-docker.pkg.dev/mlops37/text-detect-storage/train:latest
+        env:
+        - name: TRAIN_ON_CLOUD
+          value: "True"
+        - name: CLOUD_DATA_PATH
+          value: "/gcs/text-detect-raw-data/raw/train_drcat_04.csv"
