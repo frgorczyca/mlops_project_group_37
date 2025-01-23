@@ -68,7 +68,7 @@ def load_model():
     try:
         logger.info("Loading production model.")
         production_model_artifact_path = (
-            "group-37/text-detect/test-run-model:v1"
+            "mlops_project_group_37/wandb-registry-Text detect registry/Trained LLM detector:production"
         )
 
         api_key = os.getenv("WANDB_API_KEY")
@@ -79,15 +79,6 @@ def load_model():
         wb_config = artifact.logged_by().config
         cfg = OmegaConf.create(wb_config)
 
-         # Load checkpoint and fix missing keys
-        model_path = artifact.download()
-        checkpoint = torch.load(model_path)
-        if "pytorch-lightning_version" not in checkpoint:
-            logger.warning("Checkpoint missing 'pytorch-lightning_version'. Adding default value.")
-            checkpoint["pytorch-lightning_version"] = "2.5.0"  # Use a suitable version or default
-            # Save the fixed checkpoint back
-            torch.save(checkpoint, model_path)
-            
         _, model = load_download_artifact_model(cfg, api, production_model_artifact_path)
 
         # Set random seeds

@@ -72,7 +72,7 @@ def load_latest_file(base_path: str) -> Path:
 def load_data(data_path: Path) -> (list, list):
     """Load data from the CSV and extract texts and labels."""
     texts, labels = [], []
-    with open(data_path, newline="") as csvfile:
+    with open(data_path, newline="", encoding="utf-8") as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             texts.append(row["text"])
