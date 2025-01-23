@@ -1,3 +1,4 @@
+# DEPRECATED
 program: train.py  # your training entry script
 method: bayes  # or "random" or "grid"
 metric:
