@@ -599,7 +599,17 @@ We have implemented a frontend for our API that allows the user to upload a txt 
 
 ![Pipeline](figures/pipeline_new.png)
 
-The figure above illustrates our pipeline. The code was developed locally and regularly pushed to GitHub using branches. GitHub Actions were configured to perform checks whenever pull requests were made to the main branch. Once the development phase was complete, the code was built on Google Cloud using Docker, and the resulting image was stored in an Artifact Registry. For training, we utilized Vertex AI, which leveraged the Docker image from the Artifact Registry, training data stored in Cloud Storage, and W&B secrets managed via Secret Manager. After training, the trained model was stored in W&B. Currently, the API operates locally. The backend is deployed with BentoML, while the frontend is implemented using Streamlit.
+The figure above illustrates our pipeline.
+
+The code was developed locally and regularly pushed to GitHub using branches.
+
+GitHub Actions were configured to perform checks whenever pull requests were made to the main branch.
+
+Once a pull request is merged into main branch, a job triggers to push the code and it build the resulting training image in Cloud Build, and the resulting image was pushed in an Artifact Registry.
+
+For training we utilize Vertex AI, which accesses images stored in Artifact Registry, anb pulls dataset from Cloud storage bucket. That job is started manually through a workflow but could be automated in the future. Once training is completed, job publishes the resulting model to Weights and Biases, access to which is provided through secrets stored in Secret Manager.
+
+Since we have not deployed our API and Frontend applications, they can only be accessed by running them locally. Backend calls W&B with inference requests which are later returned to the user.
 
 
 ### Question 30
