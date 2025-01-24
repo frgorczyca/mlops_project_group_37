@@ -634,6 +634,6 @@ In hindsight, the solutions to these struggles seem trivial, but actually develo
 
 - Student s214238 was in charge of developing the functionality surrounding model configuration, training, Weights and Biases integration, inference, and developing APIs, as well as implementing integration and performance tests.
 Student s233664 was in charge of setting Github repository, setting checks and rulesets for branches, build data pipeline and setting up DVC, creating train environment in the cloud (Artifact Repo + workflow) and Vertex AI configuration for custom job run.
-- Student s183540 was ...
-- Student s233190 was ...
+- Student s183540 was making the unittests for data.py and creating and building docker images regarding training and API deployment.
+- Student s233190 developing the initial wandb implementation with model loging as artifact, docker image build, cloud docker build and deplyment with GPU, developing the frontend and the unittests for model.py.
 A mixture of ChatGPT, Claude and GitHub Copilot were used for debugging code, providing implementation suggestions and for automatic documentation in some places.
