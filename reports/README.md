@@ -593,7 +593,10 @@ We have not implemented any extra features.
 >
 > Answer:
 
---- question 29 fill here ---
+![Pipeline](figures/pipeline_new.png)
+
+The figure above illustrates our pipeline. The code was developed locally and regularly pushed to GitHub using branches. GitHub Actions were configured to perform checks whenever pull requests were made to the main branch. Once the development phase was complete, the code was built on Google Cloud using Docker, and the resulting image was stored in an Artifact Registry. For training, we utilized Vertex AI, which leveraged the Docker image from the Artifact Registry, training data stored in Cloud Storage, and W&B secrets managed via Secret Manager. After training, the trained model was stored in W&B. Currently, the API operates locally. The backend is deployed with BentoML, while the frontend is implemented using Streamlit.
+
 
 ### Question 30
 
