@@ -292,7 +292,16 @@ We have used DVC but it was not integral part of our data management. Since we u
 >
 > Answer:
 
---- question 11 fill here ---
+Our continous integration involves:
+- Run ruff checks: To make sure coding standards are consistent across contributions
+- Run precommit checks and commit precommit fixes: Similar purpose to the one above
+- Setup python environment and run unittests: tested on unix and macos environment with python 3.11 and python 3.12. Testing on windows was scrapped for most of the development process since it was quite slow and wasn't deemed that crucial (containers are rarely based on that OS)
+- Setup python environment and run API integrations tests: While could be combined with unit test for environment setup, we have decided to split those since they are a vastly different part of the application
+- Stage W&B model: Identify latest model, run performance tests and tag it for production
+- Vertex AI pipeline: Can only be triggered manually, creates a custom job to train in the cloud
+- Build docker (cloudbuild): Triggers on main merge, build a docker container and uploads it to the Artifact Registry
+
+Example workflow for integration tests can be found [here](https://github.com/frgorczyca/mlops_project_group_37/actions/runs/12951030971)
 
 ## Running code and tracking experiments
 
@@ -373,7 +382,7 @@ We used hydra for managing the configuration of our model training. This consist
 >
 > Answer:
 
---- question 16 fill here ---
+We have used Visual Studio Code debugger quite extensively for debugging python code both for loggin variables and for breakpoints. This was very usefull in the initially stages (when coding was still a large part of the project) and while writing unit tests (both to spot bugs in the code we have not noticed before or to fine tune the tests).
 
 ## Working in the cloud
 
@@ -391,13 +400,13 @@ We used hydra for managing the configuration of our model training. This consist
 > Answer:
 
 We have used:
-- Cloud Storage - for storing datasets
-- Artifact Registry - for storing build Docker images
-- Cloud Build - for building docker images
-- Vertex AI - for setting up training in the cloud
-- Secret Manager - for storing W&B secrets
-- IAM & Admin - managing service account permission to resources
-- Cloud Run - for deploying API
+- Cloud Storage - For storing datasets
+- Artifact Registry - For storing build Docker images
+- Cloud Build - For building docker images
+- Vertex AI - For setting up training in the cloud
+- Secret Manager - For storing W&B secrets
+- IAM & Admin - Managing service account permission to resources
+- Cloud Run - For deploying API
 - Compute Engine - for training on vm in the cloud with manual setup
 
 ### Question 18
@@ -413,7 +422,8 @@ We have used:
 >
 > Answer:
 
---- question 18 fill here ---
+We have not used Compute Engine that much other than sporadic running of train.py with a manual setup meaning: cloning the repository manually, running setup tasks (installing requirements etc.) and running the code manually. We found it to be tedious task and since our model is quite small and for the development process it can be trained in less than 15 minutes on the local environment.
+We have opted to use Vertex AI since the setup is much faster and less painful.
 
 ### Question 19
 
@@ -422,7 +432,7 @@ We have used:
 >
 > Answer:
 
-!image[GCP Bucket](figures/cloud_storage.png)
+![GCP Bucket](figures/cloud_storage.png)
 
 ### Question 20
 
@@ -431,7 +441,7 @@ We have used:
 >
 > Answer:
 
-!image[GCP Artifact Registry](figures/artifact_repository.png)
+![GCP Artifact Registry](figures/artifact_repository.png)
 
 ### Question 21
 
@@ -440,7 +450,7 @@ We have used:
 >
 > Answer:
 
-!image[GCP Cloud Build](figures/cloud_build.png)
+![GCP Cloud Build](figures/cloud_build.png)
 
 ### Question 22
 
@@ -540,7 +550,7 @@ We wrote two API's, one using FastAPI and the other using BentoML. However both 
 >
 > Answer:
 
-Since we quickly moved to a single project setup with little experimentation on the individual clouds, costs were aggregated into single account. As of last day of the course we have used 9$ worth of credits on that account.
+Since we quickly moved to a single project setup with little experimentation on the individual clouds, costs were aggregated into single account. As of last day of the course we have used just above 8$ worth of credits on that account. Almost all credits (~7.5$) were used by Compute Engine. Vertex AI took second place with 0.5$ spend. Two services billed less than half a dolar: Artifact Registry, Cloud Storage
 
 ### Question 28
 
