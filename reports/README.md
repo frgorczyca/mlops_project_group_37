@@ -418,7 +418,7 @@ We have used:
 >
 > Answer:
 
-!image[GCP Bucket](figures/cloud_storage.png)
+![GCP Bucket](figures/cloud_storage.png)
 
 ### Question 20
 
@@ -427,7 +427,7 @@ We have used:
 >
 > Answer:
 
-!image[GCP Artifact Registry](figures/artifact_repository.png)
+![GCP Artifact Registry](figures/artifact_repository.png)
 
 ### Question 21
 
@@ -436,7 +436,7 @@ We have used:
 >
 > Answer:
 
-!image[GCP Cloud Build](figures/cloud_build.png)
+![GCP Cloud Build](figures/cloud_build.png)
 
 ### Question 22
 
