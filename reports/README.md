@@ -107,8 +107,8 @@ will check the repositories and the code to verify your answers.
 * [ ] Write some documentation for your application (M32)
 * [ ] Publish the documentation to GitHub Pages (M32)
 * [ ] Revisit your initial project description. Did the project turn out as you wanted?
-* [ ] Create an architectural diagram over your MLOps pipeline
-* [ ] Make sure all group members have an understanding about all parts of the project
+* [X] Create an architectural diagram over your MLOps pipeline
+* [X] Make sure all group members have an understanding about all parts of the project
 * [X] Uploaded all your code to GitHub
 
 ## Group information
@@ -560,23 +560,23 @@ We did not managed to implement monitoring - we simply did not have time, and so
 >
 > Answer:
 
-Since we quickly moved to a single project setup with little experimentation on the individual clouds, costs were aggregated into single account. As of last day of the course we have used just above 8$ worth of credits on that account. Almost all credits (~7.5$) were used by Compute Engine. Vertex AI took second place with 0.5$ spend. Two services billed less than half a dolar: Artifact Registry, Cloud Storage
+Since we quickly moved to a single project setup with little experimentation on the individual clouds, costs were aggregated into a single account. As of the last day of the course, we have used just above 8$ worth of credits on that account. Almost all credits (~7.5$) were used by the Compute Engine. Vertex AI took second place with 0.5$ spend. Two services billed less than half a dollar: Artifact Registry, Cloud Storage
 
 ### Question 28
 
 > **Did you implement anything extra in your project that is not covered by other questions? Maybe you implemented**
-> **a frontend for your API, use extra version control features, a drift detection service, a kubernetes cluster etc.**
+> **a frontend for your API, use extra version control features, a drift detection service, a Kubernetes cluster, etc.**
 > **If yes, explain what you did and why.**
 >
 > Recommended answer length: 0-200 words.
 >
 > Example:
-> *We implemented a frontend for our API. We did this because we wanted to show the user ... . The frontend was*
+> *We implemented a frontend for our API. We did this because we wanted to show the user ... The frontend was*
 > *implemented using ...*
 >
 > Answer:
 
-We have not implemented any extra features.
+We have implemented a frontend for our API that allows the user to upload a txt file, and post a request to the API, which retrieves a class["Human"/"AI"]. A docker file and necessary file configuration for retrieving the API URL from the cloud service are ready in the codebase; nevertheless, due to time constraints we ended up not deploying the frontend service online. The current version has to be deployed locally, by first running the dockerized API on the cloud and then running "streamlit run text-detect/src/frontend.py" on the command line(from the root directory of the project). In this way, we managed to complete the full pipeline and provide all the necessary services to run a working application with a clear user interface.
 
 ### Question 29
 
