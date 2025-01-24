@@ -17,9 +17,9 @@ from text_detect.data import LLMDataset, load_data
 from loguru import logger
 from omegaconf import OmegaConf
 
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 
-load_dotenv()
+# load_dotenv()
 
 
 def setup_callbacks(cfg, logger):
@@ -126,11 +126,13 @@ def train(cfg):
 
     # Load tokenizer
     logger.info(f"Loading tokenizer: {cfg.model.transformer_name}")
+    # pdb.set_trace()
     os.environ["TOKENIZERS_PARALLELISM"] = "false"  # Set this environment variable before importing tokenizers
     tokenizer = AutoTokenizer.from_pretrained(cfg.model.transformer_name)
 
     # Load and split data
     logger.info("Loading data")
+    # pdb.set_trace()
     if os.getenv("TRAIN_ON_CLOUD") == "True":
         train_val_texts, train_val_labels = load_data(os.getenv("CLOUD_DATA_PATH"))
     else:
