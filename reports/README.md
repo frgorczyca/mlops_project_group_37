@@ -418,7 +418,7 @@ We have used:
 >
 > Answer:
 
---- question 19 fill here ---
+!image[GCP Bucket](figures/cloud_storage.png)
 
 ### Question 20
 
@@ -427,7 +427,7 @@ We have used:
 >
 > Answer:
 
---- question 20 fill here ---
+!image[GCP Artifact Registry](figures/artifact_repository.png)
 
 ### Question 21
 
@@ -436,7 +436,7 @@ We have used:
 >
 > Answer:
 
---- question 21 fill here ---
+!image[GCP Cloud Build](figures/cloud_build.png)
 
 ### Question 22
 
@@ -536,7 +536,7 @@ We wrote two API's, one using FastAPI and the other using BentoML. However both 
 >
 > Answer:
 
---- question 27 fill here ---
+Since we quickly moved to a single project setup with little experimentation on the individual clouds, costs were aggregated into single account. As of last day of the course we have used 9$ worth of credits on that account.
 
 ### Question 28
 
@@ -583,11 +583,10 @@ We wrote two API's, one using FastAPI and the other using BentoML. However both 
 >
 > Answer:
 
---- question 30 fill here ---
 The overall struggles of the project depends on the responsibilites of each team member.
 Implementing Weights & Biases functionality proved quite challenging. As our model was built with pytorch lightning, we wanted to use the exclusive WandbLogger object, but getting logging and artifact saving to work properly during training was difficult, as the documentation is quite poor,so lots of debugging and testing had to be done. There were also lots of quirks to iron out when retrieving and re-initializing saved artifact models.
 Additionally, getting the github dispatch workflow that triggers when a model is staged to work also took quite a while, as each error had to be fixed on a branch and then merged with main via a PR before it could be re-tested, as the workflow only triggers on main (it could be tested locally, but took even longer to build then).
-!!!ADD DOCKER AND CLOUD STRUGGLES!!!
+A lot of struggles have came with the setting up containers for different purposes: from running anything locally to training in Vertex AI. Since we used different machines, docker images could work on some and do not build on the others. Cloud setup would also prove very tedious: steps taking up to 20 minutes for every trail-and-error attempt to fine tune docker images. However, setting up services was actually not that difficult - most of them worked with very little setup.
 In hindsight, the solutions to these struggles seem trivial, but actually developing them took huge effort.
 
 ### Question 31
@@ -607,7 +606,7 @@ In hindsight, the solutions to these struggles seem trivial, but actually develo
 > Answer:
 
 Student s214238 was in charge of developing the functionality surrounding model configuration, training, Weights and Biases integration, inference, and developing APIs, as well as implementing integration and performance tests.
-Student s233664 was ...
+Student s233664 was in charge of setting Github repository, setting checks and rulesets for branches, build data pipeline and setting up DVC, creating train environment in the cloud (Artifact Repo + workflow) and Vertex AI configuration for custom job run.
 Student s183540 was ...
 Student s233190 was ...
 A mixture of ChatGPT, Claude and GitHub Copilot were used for debugging code, providing implementation suggestions and for automatic documentation in some places.
