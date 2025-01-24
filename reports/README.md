@@ -229,7 +229,7 @@ We have used ruff both as pre-commit and as a check in the Github Actions workfl
 We have implemented 3 kind of tests: unit tests, performance tests and integration tests.
 The unit tests tests the data and the model - the the data tests tests all the functions and class methods inside our data.py and the model test tests most of our function, excluding the ones using W&B.
 Our performance test had a test using locust for load testing and an accuracy test making sure our model has an accuray above 80%.
-Finally, the integration test is used to validate our API. 
+Finally, the integration test is used to validate our API.
 
 
 ### Question 8
@@ -245,10 +245,10 @@ Finally, the integration test is used to validate our API.
 >
 > Answer:
 
-Next, an overview of the code coverage of tests performed is shown: 
+Next, an overview of the code coverage of tests performed is shown:
 - For the integration tests, specifically  the API tests: 52% average coverage with 43% coverage of the wandb_functions.py, 42% of model.py, and 70% of the app.py file.
 - As for the unit tests, the data.py unit tests achieved 82% coverage, whereas the model unit tests achieved only 52% coverage of the model file. This is due to the fact that any functions of the model.py code which required external api calling(mostly wandb) were omitted.
-- Even if the tests achieved a 100% code coverage, we would not trust it to run completely bug-free. Coverage is just a representation of the number of lines of code run when the tests are executed. Nevertheless, even though thse lines are run, there might be scenarios which trigger certain parts of the tested codes, and in combination with each other, do not behave as expected. 
+- Even if the tests achieved a 100% code coverage, we would not trust it to run completely bug-free. Coverage is just a representation of the number of lines of code run when the tests are executed. Nevertheless, even though thse lines are run, there might be scenarios which trigger certain parts of the tested codes, and in combination with each other, do not behave as expected.
 
 
 ### Question 9
@@ -279,12 +279,12 @@ We made use of branches to segregate development of different features amongst g
 >
 > Answer:
 
-We have used DVC but it was not integral part of our data management. Since we used a dataset from kaggle, and never modified it, we were able to pull it on demand using a script executable as an python invoke task. We made no changes to our dataset, which made version control little reduntant in our specific case. We do however see the advantage of using DVC in projects where data sets change constantly, making sure it's consistent across environments and that potentiall errors. Google Cloud integration of DVC also makes it easier for services to access datasets, so storing version controlled files there makes setting up training much easier.
+We have used DVC but it was not an integral part of our data management. Since we used a dataset from Kaggle and never modified it, we were able to pull it on demand using a script executable as a Python invoke task. We made no changes to our dataset, which made version control a little redundant in our specific case. We do however see the advantage of using DVC in projects where data sets change constantly, making sure it's consistent across environments and that potential errors. Google Cloud integration of DVC also makes it easier for services to access datasets, so storing version controlled files there makes setting up training much easier.
 
 ### Question 11
 
-> **Discuss you continuous integration setup. What kind of continuous integration are you running (unittesting,**
-> **linting, etc.)? Do you test multiple operating systems, Python  version etc. Do you make use of caching? Feel free**
+> **Discuss your continuous integration setup. What kind of continuous integration are you running (unit testing,**
+> **linting, etc.)? Do you test multiple operating systems, Python  versions etc. Do you make use of caching? Feel free**
 > **to insert a link to one of your GitHub actions workflow.**
 >
 > Recommended answer length: 200-300 words.
@@ -296,10 +296,10 @@ We have used DVC but it was not integral part of our data management. Since we u
 >
 > Answer:
 
-Our continous integration involves:
+Our continuous integration involves:
 - Run ruff checks: To make sure coding standards are consistent across contributions
-- Run precommit checks and commit precommit fixes: Similar purpose to the one above
-- Setup python environment and run unittests: tested on unix and macos environment with python 3.11 and python 3.12. Testing on windows was scrapped for most of the development process since it was quite slow and wasn't deemed that crucial (containers are rarely based on that OS)
+- Run pre-commit checks and commit pre-commit fixes: Similar purpose to the one above
+- Setup python environment and run unit tests: tested on unix and macOS environment with python 3.11 and python 3.12. Testing on windows was scrapped for most of the development process since it was quite slow and wasn't deemed that crucial (containers are rarely based on that OS)
 - Setup python environment and run API integrations tests: While could be combined with unit test for environment setup, we have decided to split those since they are a vastly different part of the application
 - Stage W&B model: Identify latest model, run performance tests and tag it for production
 - Vertex AI pipeline: Can only be triggered manually, creates a custom job to train in the cloud
@@ -324,11 +324,11 @@ Example workflow for integration tests can be found [here](https://github.com/fr
 >
 > Answer:
 
-We used hydra for managing the configuration of our model training. This consists of a primary config file, that holds top-level config such as the global seed, and further points to subconfigs for our data, model, optimizer and training hyperparamters. When a run is executed, hydra automatically logs the used config, but it is also saved in the W&B artifact metadata so it can be retrieved when the model is downloaded from the registry.
+We used hydra for managing the configuration of our model training. This consists of a primary config file, that holds top-level config such as the global seed, and further points to subconfigs for our data, model, optimizer and training hyperparameters. When a run is executed, hydra automatically logs the used config, but it is also saved in the W&B artifact metadata so it can be retrieved when the model is downloaded from the registry.
 
 ### Question 13
 
-> **Reproducibility of experiments are important. Related to the last question, how did you secure that no information**
+> **Reproducibility of experiments is important. Related to the last question, how did you secure that no information**
 > **is lost when running experiments and that your experiments are reproducible?**
 >
 > Recommended answer length: 100-200 words.
@@ -356,7 +356,7 @@ We used hydra for managing the configuration of our model training. This consist
 >
 > Answer:
 
---- question 14 fill here ---
+We ran a pretrained model from Huggingface and the task to be performed was a simple binary classification; hence the performance of the model was already excellent from the very beginning. We run the transformer model "prajjwal1/bert-tiny", with the following hyperparameters:  batch_size=16, epochs=2, precision=32, lr=2e-5, optimizer= adamw. The results from the experiment are shown in the following images. [Validation precision of the model](figures/wandb.png) [Validation accuracy of the model](figures/wandb.png)[confusion matrix of the model](figures/wandb.png).
 
 ### Question 15
 
