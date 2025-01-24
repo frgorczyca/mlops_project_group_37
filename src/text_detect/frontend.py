@@ -38,6 +38,7 @@ def text_detect(text_data: str, backend: str):
 def main() -> None:
     """Main function of the Streamlit frontend."""
     # IMPORTANT: Include the scheme in the URL
+
     backend = "http://localhost:3000"  # get_backend_url()
 
     st.title("Text Classification Demo")
