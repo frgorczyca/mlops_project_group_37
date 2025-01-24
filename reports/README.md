@@ -72,8 +72,8 @@ will check the repositories and the code to verify your answers.
 
 ### Week 2
 
-* [ ] Write unit tests related to the data part of your code (M16)
-* [ ] Write unit tests related to model construction and or model training (M16)
+* [x] Write unit tests related to the data part of your code (M16)
+* [x] Write unit tests related to model construction and or model training (M16)
 * [X] Calculate the code coverage (M16)
 * [X] Get some continuous integration running on the GitHub repository (M17)
 * [X] Add caching and multi-os/python/pytorch testing to your continuous integration (M17)
@@ -226,7 +226,11 @@ We have used ruff both as precommit and as a check in the Github Actions workflo
 >
 > Answer:
 
---- question 7 fill here ---
+We have implemented 3 kind of tests: unit tests, performance tests and integration tests.
+The unit tests tests the data and the model - the the data tests tests all the functions and class methods inside our data.py and the model test tests most of our function, excluding the ones using W&B.
+Our performance test had a test using locust for load testing and an accuracy test making sure our model has an accuray above 80%.
+Finally, the integration test is used to validate our API. 
+
 
 ### Question 8
 
