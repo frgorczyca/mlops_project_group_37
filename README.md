@@ -18,7 +18,7 @@ In terminal run:
 - open the link given as output in the terminal by the frontend application.
 - upload a txt file to the dropdown box.
 - The answer should be retrieved, as soon as the file is processed by the backend. The output will be either "Human" or "AI".
-- 
+-
 ## Contributors
 
 Artur Adam Habuda s233190
