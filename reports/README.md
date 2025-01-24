@@ -207,7 +207,7 @@ Using the cookiecutter template, we filled configs/ with a distributed hydra con
 >
 > Answer:
 
---- question 6 fill here ---
+We have used ruff both as precommit and as a check in the Github Actions workflow, as well as ruff fix for postcheck formatting. We also tried implementing mypy, but it proven hard to integrate as a check in the workflow, given the need to install type stubs as dependencies. It's worth noting that we have relied heavy on Visual Studio Code formatter, that in general does a good job of keeping files tidy. However it was used by team members as local precommit check. Such checks are important, as they allows for greater code consisentcy between team members who may have different approach to coding. It also ensures that stale code is removed and does not bloat the codebase.
 
 ## Version control
 
@@ -271,7 +271,7 @@ We made use of branches to segregate development of different features amongst g
 >
 > Answer:
 
---- question 10 fill here ---
+We have used DVC but it was not integral part of our data management. Since we used a dataset from kaggle, and never modified it, we were able to pull it on demand using a script executable as an python invoke task. We made no changes to our dataset, which made version control little reduntant in our specific case. We do however see the advantage of using DVC in projects where data sets change constantly, making sure it's consistent across environments and that potentiall errors. Google Cloud integration of DVC also makes it easier for services to access datasets, so storing version controlled files there makes setting up training much easier.
 
 ### Question 11
 
@@ -388,7 +388,15 @@ Additional metrics such as recall (measuring the model's ability to find all pos
 >
 > Answer:
 
---- question 17 fill here ---
+We have used:
+- Cloud Storage - for storing datasets
+- Artifact Registry - for storing build Docker images
+- Cloud Build - for building docker images
+- Vertex AI - for setting up training in the cloud
+- Secret Manager - for storing W&B secrets
+- IAM & Admin - managing service account permission to resources
+- Cloud Run - for deploying API
+- Compute Engine - for training on vm in the cloud with manual setup
 
 ### Question 18
 
@@ -445,7 +453,7 @@ Additional metrics such as recall (measuring the model's ability to find all pos
 >
 > Answer:
 
---- question 22 fill here ---
+Yes, we have managed to run a custom job through Vertex AI to run training. This was successful both through a workflow file and through a console comand. It utilized an image pushed to artifact repository beforehand and local config file (in case of console command) and Secret Manager (in case of workflow file) to get access to W&B. However, we were unable to use GPU resources, and were forced to use CPU, which resulted in very long training time (around 1.5h compared to around 15 minutes on our own M1 Macbook Pro). This setback makes Vertex AI usable only as background job, where speed can be sacrified.
 
 ## Deployment
 
