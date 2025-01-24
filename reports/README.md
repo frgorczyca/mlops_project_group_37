@@ -236,7 +236,7 @@ Finally, the integration test is used to validate our API.
 ### Question 8
 
 > **What is the total code coverage (in percentage) of your code? If your code had a code coverage of 100% (or close**
-> **to), would you still trust it to be error free? Explain you reasoning.**
+> **to), would you still trust it to be error-free? Explain you reasoning.**
 >
 > Recommended answer length: 100-200 words.
 >
@@ -246,12 +246,16 @@ Finally, the integration test is used to validate our API.
 >
 > Answer:
 
---- question 8 fill here ---
+Next, an overview of the code coverage of tests performed is shown: 
+- For the integration tests, specifically  the API tests: 52% average coverage with 43% coverage of the wandb_functions.py, 42% of model.py, and 70% of the app.py file.
+- As for the unit tests, the data.py unit tests achieved 82% coverage, whereas the model unit tests achieved only 52% coverage of the model file. This is due to the fact that any functions of the model.py code which required external api calling(mostly wandb) were omitted.
+- Even if the tests achieved a 100% code coverage, we would not trust it to run completely bug-free. Coverage is just a representation of the number of lines of code run when the tests are executed. Nevertheless, even though thse lines are run, there might be scenarios which trigger certain parts of the tested codes, and in combination with each other, do not behave as expected. 
+
 
 ### Question 9
 
-> **Did you workflow include using branches and pull requests? If yes, explain how. If not, explain how branches and**
-> **pull request can help improve version control.**
+> **Did your workflow include using branches and pull requests? If yes, explain how. If not, explain how branches and**
+> **pull requests can help improve version control.**
 >
 > Recommended answer length: 100-200 words.
 >
