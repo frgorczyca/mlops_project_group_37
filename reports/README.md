@@ -207,7 +207,8 @@ Using the cookiecutter template, we filled configs/ with a distributed hydra con
 >
 > Answer:
 
-We have used ruff both as precommit and as a check in the Github Actions workflow, as well as ruff fix for postcheck formatting. We also tried implementing mypy, but it proven hard to integrate as a check in the workflow, given the need to install type stubs as dependencies. It's worth noting that we have relied heavy on Visual Studio Code formatter, that in general does a good job of keeping files tidy. However it was used by team members as local precommit check. Such checks are important, as they allows for greater code consisentcy between team members who may have different approach to coding. It also ensures that stale code is removed and does not bloat the codebase.
+We have used ruff both as precommit and as a check in the Github Actions workflow, as well as ruff fix for postcheck formatting. We also tried implementing mypy, but it proven hard to integrate as a check in the workflow, given the need to install type stubs as dependencies. It's worth noting that we have relied heavy on Visual Studio Code formatter, that in general does a good job of keeping files tidy. However it was used by team members as local precommit check. Such checks are important, as they allows for greater code consisentcy between team members who may have different approach to coding. It also ensures that stale code is removed and does not bloat the codebase. <br />
+Eventually we have found a custom action to perform precommit checks and commit changes, but it would sometime fail to commit, making it not so reliable.
 
 ## Version control
 
@@ -229,7 +230,7 @@ We have used ruff both as precommit and as a check in the Github Actions workflo
 We have implemented 3 kind of tests: unit tests, performance tests and integration tests.
 The unit tests tests the data and the model - the the data tests tests all the functions and class methods inside our data.py and the model test tests most of our function, excluding the ones using W&B.
 Our performance test had a test using locust for load testing and an accuracy test making sure our model has an accuray above 80%.
-Finally, the integration test is used to validate our API. 
+Finally, the integration test is used to validate our API.
 
 
 ### Question 8
@@ -275,7 +276,8 @@ We made use of branches to segregate development of different features amongst g
 >
 > Answer:
 
-We have used DVC but it was not integral part of our data management. Since we used a dataset from kaggle, and never modified it, we were able to pull it on demand using a script executable as an python invoke task. We made no changes to our dataset, which made version control little reduntant in our specific case. We do however see the advantage of using DVC in projects where data sets change constantly, making sure it's consistent across environments and that potentiall errors. Google Cloud integration of DVC also makes it easier for services to access datasets, so storing version controlled files there makes setting up training much easier.
+We have used DVC but it was not integral part of our data management. Since we used a dataset from kaggle, and never modified it, we were able to pull it on demand using a script executable as an python invoke task. We made no changes to our dataset, which made version control little reduntant in our specific case. <br />
+We do however see the advantage of using DVC in projects where data sets change constantly, making sure it's consistent across environments and that potentiall errors. Google Cloud integration of DVC also makes it easier for services to access datasets, so storing version controlled files there makes setting up training much easier.
 
 ### Question 11
 
@@ -367,7 +369,10 @@ We used hydra for managing the configuration of our model training. This consist
 >
 > Answer:
 
---- question 15 fill here ---
+We have used docker images in two cases:
+- Training image used by Vertex AI for training. This image is build on successful merge to `main` branch and uploaded to Artifact Registry. Can also be used to train model locally. Dockerfile can be found in [here](../../dockerfiles/train.dockerfile).
+- Image generated using `bentoml contenerize` that is used to deploy API to the cloud using Cloud Run. Bento ML file used to generate the image can be found [here](../../bentofile.yaml)
+
 
 ### Question 16
 
@@ -382,7 +387,7 @@ We used hydra for managing the configuration of our model training. This consist
 >
 > Answer:
 
-We have used Visual Studio Code debugger quite extensively for debugging python code both for loggin variables and for breakpoints. This was very usefull in the initially stages (when coding was still a large part of the project) and while writing unit tests (both to spot bugs in the code we have not noticed before or to fine tune the tests).
+We have used Visual Studio Code debugger quite extensively for debugging python code both for loggin variables and for breakpoints. This was very usefull in the initially stages (when coding was still a large part of the project) and while writing unit tests (both to spot bugs in the code we have not noticed before or to fine tune the tests). We have not used any profiling.
 
 ## Working in the cloud
 
@@ -422,7 +427,7 @@ We have used:
 >
 > Answer:
 
-We have not used Compute Engine that much other than sporadic running of train.py with a manual setup meaning: cloning the repository manually, running setup tasks (installing requirements etc.) and running the code manually. We found it to be tedious task and since our model is quite small and for the development process it can be trained in less than 15 minutes on the local environment.
+We have not used Compute Engine that much other than sporadic running of train.py with a manual setup meaning: cloning the repository manually, running setup tasks (installing requirements etc.) and running the code manually. We found it to be tedious task and since our model is quite small and for the development process it can be trained in less than 15 minutes on the local environment. <br />
 We have opted to use Vertex AI since the setup is much faster and less painful.
 
 ### Question 19
@@ -465,7 +470,8 @@ We have opted to use Vertex AI since the setup is much faster and less painful.
 >
 > Answer:
 
-Yes, we have managed to run a custom job through Vertex AI to run training. This was successful both through a workflow file and through a console comand. It utilized an image pushed to artifact repository beforehand and local config file (in case of console command) and Secret Manager (in case of workflow file) to get access to W&B. However, we were unable to use GPU resources, and were forced to use CPU, which resulted in very long training time (around 1.5h compared to around 15 minutes on our own M1 Macbook Pro). This setback makes Vertex AI usable only as background job, where speed can be sacrified.
+Yes, we have managed to run a custom job through Vertex AI to run training. This was successful both through a workflow file and through a console comand. It utilized an image pushed to artifact repository beforehand and local config file (in case of console command) and Secret Manager (in case of workflow file) to get access to W&B. <br />
+However, we were unable to use GPU resources, and were forced to use CPU, which resulted in very long training time (around 1.5h compared to around 15 minutes on our own M1 Macbook Pro). This setback makes Vertex AI usable only as background job, where speed can be sacrified.
 
 ## Deployment
 
@@ -516,7 +522,7 @@ We wrote two API's, one using FastAPI and the other using BentoML. However both 
 >
 > Answer:
 
---- question 25 fill here ---
+We have added both unit and performance tests for our API. Unit tests use mock up client to check correctness of the response format of our client.
 
 ### Question 26
 
@@ -531,7 +537,7 @@ We wrote two API's, one using FastAPI and the other using BentoML. However both 
 >
 > Answer:
 
---- question 26 fill here ---
+We did not managed to implement monitoring - we simply did not have time, and some parts of our infrastructure were still lacking for that.
 
 ## Overall discussion of project
 
@@ -566,7 +572,7 @@ Since we quickly moved to a single project setup with little experimentation on 
 >
 > Answer:
 
---- question 28 fill here ---
+We have not implemented any extra features.
 
 ### Question 29
 
@@ -599,8 +605,8 @@ Since we quickly moved to a single project setup with little experimentation on 
 
 The overall struggles of the project depends on the responsibilites of each team member.
 Implementing Weights & Biases functionality proved quite challenging. As our model was built with pytorch lightning, we wanted to use the exclusive WandbLogger object, but getting logging and artifact saving to work properly during training was difficult, as the documentation is quite poor,so lots of debugging and testing had to be done. There were also lots of quirks to iron out when retrieving and re-initializing saved artifact models.
-Additionally, getting the github dispatch workflow that triggers when a model is staged to work also took quite a while, as each error had to be fixed on a branch and then merged with main via a PR before it could be re-tested, as the workflow only triggers on main (it could be tested locally, but took even longer to build then).
-A lot of struggles have came with the setting up containers for different purposes: from running anything locally to training in Vertex AI. Since we used different machines, docker images could work on some and do not build on the others. Cloud setup would also prove very tedious: steps taking up to 20 minutes for every trail-and-error attempt to fine tune docker images. However, setting up services was actually not that difficult - most of them worked with very little setup.
+Additionally, getting the github dispatch workflow that triggers when a model is staged to work also took quite a while, as each error had to be fixed on a branch and then merged with main via a PR before it could be re-tested, as the workflow only triggers on main (it could be tested locally, but took even longer to build then). <br />
+A lot of struggles have came with the setting up containers for different purposes: from running anything locally to training in Vertex AI. Since we used different machines, docker images could work on some and do not build on the others. Cloud setup would also prove very tedious: steps taking up to 20 minutes for every trail-and-error attempt to fine tune docker images. However, setting up services was actually not that difficult - most of them worked with very little setup. <br />
 In hindsight, the solutions to these struggles seem trivial, but actually developing them took huge effort.
 
 ### Question 31
@@ -619,8 +625,8 @@ In hindsight, the solutions to these struggles seem trivial, but actually develo
 > *We have used ChatGPT to help debug our code. Additionally, we used GitHub Copilot to help write some of our code.*
 > Answer:
 
-Student s214238 was in charge of developing the functionality surrounding model configuration, training, Weights and Biases integration, inference, and developing APIs, as well as implementing integration and performance tests.
+- Student s214238 was in charge of developing the functionality surrounding model configuration, training, Weights and Biases integration, inference, and developing APIs, as well as implementing integration and performance tests.
 Student s233664 was in charge of setting Github repository, setting checks and rulesets for branches, build data pipeline and setting up DVC, creating train environment in the cloud (Artifact Repo + workflow) and Vertex AI configuration for custom job run.
-Student s183540 was ...
-Student s233190 was ...
+- Student s183540 was ...
+- Student s233190 was ...
 A mixture of ChatGPT, Claude and GitHub Copilot were used for debugging code, providing implementation suggestions and for automatic documentation in some places.
