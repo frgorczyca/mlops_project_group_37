@@ -308,7 +308,7 @@ Our continuous integration involves:
 - Build docker (cloudbuild): Triggers on main merge, build a docker container and uploads it to the Artifact Registry
 
 Example workflow for integration tests can be found [here](https://github.com/frgorczyca/mlops_project_group_37/actions/runs/12951030971)
-
+The frontend application and api backend setup trough bentoml(we ended up using this one) and fast API, builds upon the continuous integration, and allows the user to effectively interact with the entire pipeline.
 ## Running code and tracking experiments
 
 > In the following section we are interested in learning more about the experimental setup for running your code and
@@ -393,7 +393,7 @@ We have used docker images in two cases:
 >
 > Answer:
 
-We have used Visual Studio Code debugger quite extensively for debugging python code both for loggin variables and for breakpoints. This was very usefull in the initially stages (when coding was still a large part of the project) and while writing unit tests (both to spot bugs in the code we have not noticed before or to fine tune the tests). We have not used any profiling.
+We have used Visual Studio Code debugger quite extensively for debugging python code both for loggin variables and for breakpoints. This was very usefull in the initially stages (when coding was still a large part of the project) and while writing unit tests (both to spot bugs in the code we have not noticed before or to fine tune the tests). We have not used any profiling. The usage of breakpoints in combination with the vs code debugger, as indicated in the course modules, allowed us to easily pinpoint faults in the code.
 
 ## Working in the cloud
 
@@ -434,7 +434,7 @@ We have used:
 > Answer:
 
 We have not used Compute Engine that much other than sporadic running of train.py with a manual setup meaning: cloning the repository manually, running setup tasks (installing requirements etc.) and running the code manually. We found it to be tedious task and since our model is quite small and for the development process it can be trained in less than 15 minutes on the local environment. <br />
-We have opted to use Vertex AI since the setup is much faster and less painful.
+We have opted to use Vertex AI since the setup is much faster and less painful. For the hardware setup of the VM we used north-europe with 1 Tesla T4 GPU, 100GB of storage and 4cpu cores. Although we eventually developed our docker containers to run on CPU, several trials to run on GPU were made.
 
 ### Question 19
 
