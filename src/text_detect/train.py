@@ -16,7 +16,6 @@ from text_detect.data import LLMDataset, load_data
 
 from loguru import logger
 from omegaconf import OmegaConf
-import pdb
 
 # from dotenv import load_dotenv
 
@@ -127,7 +126,7 @@ def train(cfg):
 
     # Load tokenizer
     logger.info(f"Loading tokenizer: {cfg.model.transformer_name}")
-    #pdb.set_trace()
+    # pdb.set_trace()
     os.environ["TOKENIZERS_PARALLELISM"] = "false"  # Set this environment variable before importing tokenizers
     tokenizer = AutoTokenizer.from_pretrained(cfg.model.transformer_name)
 
