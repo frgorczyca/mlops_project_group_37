@@ -207,7 +207,7 @@ Using the cookiecutter template, we filled configs/ with a distributed hydra con
 >
 > Answer:
 
-We have used ruff both as precommit and as a check in the Github Actions workflow, as well as ruff fix for postcheck formatting. We also tried implementing mypy, but it proven hard to integrate as a check in the workflow, given the need to install type stubs as dependencies. It's worth noting that we have relied heavy on Visual Studio Code formatter, that in general does a good job of keeping files tidy. However it was used by team members as local precommit check. Such checks are important, as they allows for greater code consisentcy between team members who may have different approach to coding. It also ensures that stale code is removed and does not bloat the codebase.
+We have used ruff both as pre-commit and as a check in the Github Actions workflow, as well as ruff fix for post check formatting. We also tried implementing mypy, but it proved hard to integrate as a check in the workflow, given the need to install type stubs as dependencies. It's worth noting that we have relied heavy on Visual Studio Code formatter, that in general does a good job of keeping files tidy. However, it was used by team members as local pre-commit check. Such checks are important, as they allows for greater code consisentcy between team members who may have different approaches to coding. It also ensures that stale code is removed and does not bloat the codebase.
 
 ## Version control
 
@@ -231,7 +231,7 @@ We have used ruff both as precommit and as a check in the Github Actions workflo
 ### Question 8
 
 > **What is the total code coverage (in percentage) of your code? If your code had a code coverage of 100% (or close**
-> **to), would you still trust it to be error free? Explain you reasoning.**
+> **to), would you still trust it to be error-free? Explain you reasoning.**
 >
 > Recommended answer length: 100-200 words.
 >
@@ -241,12 +241,16 @@ We have used ruff both as precommit and as a check in the Github Actions workflo
 >
 > Answer:
 
---- question 8 fill here ---
+Next, an overview of the code coverage of tests performed is shown: 
+- For the integration tests, specifically  the API tests: 52% average coverage with 43% coverage of the wandb_functions.py, 42% of model.py, and 70% of the app.py file.
+- As for the unit tests, the data.py unit tests achieved 82% coverage, whereas the model unit tests achieved only 52% coverage of the model file. This is due to the fact that any functions of the model.py code which required external api calling(mostly wandb) were omitted.
+- Even if the tests achieved a 100% code coverage, we would not trust it to run completely bug-free. Coverage is just a representation of the number of lines of code run when the tests are executed. Nevertheless, even though thse lines are run, there might be scenarios which trigger certain parts of the tested codes, and in combination with each other, do not behave as expected. 
+
 
 ### Question 9
 
-> **Did you workflow include using branches and pull requests? If yes, explain how. If not, explain how branches and**
-> **pull request can help improve version control.**
+> **Did your workflow include using branches and pull requests? If yes, explain how. If not, explain how branches and**
+> **pull requests can help improve version control.**
 >
 > Recommended answer length: 100-200 words.
 >
