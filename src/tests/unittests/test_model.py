@@ -73,8 +73,9 @@ def test_model_initialization(cfg, detector):
     """
     assert detector.cfg is not None, "Model did not store the cfg."
     assert detector.transformer is not None, "Transformer model not loaded."
-    assert detector.classifier.out_features == cfg.data.num_classes, \
+    assert detector.classifier.out_features == cfg.data.num_classes, (
         "Classifier output does not match cfg.data.num_classes."
+    )
 
 
 def test_forward_pass(detector, dummy_batch):
@@ -99,20 +100,18 @@ def test_configure_optimizers(cfg, detector):
 
     opt_type = cfg.optimizer.type.lower()
     if opt_type == "adam":
-        assert optimizer.__class__.__name__ == "Adam", \
-            f"Expected Adam, got {optimizer.__class__.__name__}"
+        assert optimizer.__class__.__name__ == "Adam", f"Expected Adam, got {optimizer.__class__.__name__}"
     elif opt_type == "adamw":
-        assert optimizer.__class__.__name__ == "AdamW", \
-            f"Expected AdamW, got {optimizer.__class__.__name__}"
+        assert optimizer.__class__.__name__ == "AdamW", f"Expected AdamW, got {optimizer.__class__.__name__}"
     elif opt_type == "sgd":
-        assert optimizer.__class__.__name__ == "SGD", \
-            f"Expected SGD, got {optimizer.__class__.__name__}"
+        assert optimizer.__class__.__name__ == "SGD", f"Expected SGD, got {optimizer.__class__.__name__}"
     else:
         pytest.fail(f"Unsupported optimizer type: {opt_type}")
 
     # Check that the optimizer has the correct LR
-    assert optimizer.defaults["lr"] == pytest.approx(cfg.optimizer.lr), \
+    assert optimizer.defaults["lr"] == pytest.approx(cfg.optimizer.lr), (
         f"Optimizer LR mismatch: expected {cfg.optimizer.lr}, got {optimizer.defaults['lr']}"
+    )
 
 
 def test_training_step(detector, dummy_batch):
@@ -123,6 +122,7 @@ def test_training_step(detector, dummy_batch):
     loss = detector.training_step(dummy_batch, batch_idx=0)
     assert isinstance(loss, torch.Tensor), "training_step should return a Tensor loss."
     assert loss.dim() == 0, "Loss should be a scalar (0-dim Tensor)."
+
 
 @pytest.mark.skip(reason="Integration test example; remove or adjust if you want to test epoch end hooks.")
 def test_validation_step(detector, dummy_batch):
@@ -181,4 +181,3 @@ def test_on_test_epoch_end(detector):
     """
     detector.on_test_epoch_end()
     # If no exception is raised, we consider it passed.
-

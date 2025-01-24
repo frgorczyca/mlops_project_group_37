@@ -177,6 +177,7 @@ def run_bentoml(ctx: Context):
     ctx.run("bentoml build", echo=True, pty=not WINDOWS)
     ctx.run("bentoml serve src.text_detect.bentoml_service:TextDetectionService", echo=True, pty=not WINDOWS)
 
+
 # Docker commands
 @task
 def run_frontend(ctx: Context):
@@ -184,6 +185,8 @@ def run_frontend(ctx: Context):
     Run the frontend application. Works if run_bentoml is operative.
     """
     ctx.run()
+
+
 # Testing commands
 @task
 def unittests(ctx: Context) -> None:
