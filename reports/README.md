@@ -285,8 +285,8 @@ We do however see the advantage of using DVC in projects where data sets change 
 
 ### Question 11
 
-> **Discuss you continuous integration setup. What kind of continuous integration are you running (unittesting,**
-> **linting, etc.)? Do you test multiple operating systems, Python  version etc. Do you make use of caching? Feel free**
+> **Discuss your continuous integration setup. What kind of continuous integration are you running (unit testing,**
+> **linting, etc.)? Do you test multiple operating systems, Python  versions etc. Do you make use of caching? Feel free**
 > **to insert a link to one of your GitHub actions workflow.**
 >
 > Recommended answer length: 200-300 words.
@@ -298,10 +298,10 @@ We do however see the advantage of using DVC in projects where data sets change 
 >
 > Answer:
 
-Our continous integration involves:
+Our continuous integration involves:
 - Run ruff checks: To make sure coding standards are consistent across contributions
-- Run precommit checks and commit precommit fixes: Similar purpose to the one above
-- Setup python environment and run unittests: tested on unix and macos environment with python 3.11 and python 3.12. Testing on windows was scrapped for most of the development process since it was quite slow and wasn't deemed that crucial (containers are rarely based on that OS)
+- Run pre-commit checks and commit pre-commit fixes: Similar purpose to the one above
+- Setup python environment and run unit tests: tested on unix and macOS environment with python 3.11 and python 3.12. Testing on windows was scrapped for most of the development process since it was quite slow and wasn't deemed that crucial (containers are rarely based on that OS)
 - Setup python environment and run API integrations tests: While could be combined with unit test for environment setup, we have decided to split those since they are a vastly different part of the application
 - Stage W&B model: Identify latest model, run performance tests and tag it for production
 - Vertex AI pipeline: Can only be triggered manually, creates a custom job to train in the cloud
@@ -326,11 +326,11 @@ Example workflow for integration tests can be found [here](https://github.com/fr
 >
 > Answer:
 
-We used hydra for managing the configuration of our model training. This consists of a primary config file, that holds top-level config such as the global seed, and further points to subconfigs for our data, model, optimizer and training hyperparamters. When a run is executed, hydra automatically logs the used config, but it is also saved in the W&B artifact metadata so it can be retrieved when the model is downloaded from the registry.
+We used hydra for managing the configuration of our model training. This consists of a primary config file, that holds top-level config such as the global seed, and further points to subconfigs for our data, model, optimizer and training hyperparameters. When a run is executed, hydra automatically logs the used config, but it is also saved in the W&B artifact metadata so it can be retrieved when the model is downloaded from the registry.
 
 ### Question 13
 
-> **Reproducibility of experiments are important. Related to the last question, how did you secure that no information**
+> **Reproducibility of experiments is important. Related to the last question, how did you secure that no information**
 > **is lost when running experiments and that your experiments are reproducible?**
 >
 > Recommended answer length: 100-200 words.
@@ -358,7 +358,7 @@ We used hydra for managing the configuration of our model training. This consist
 >
 > Answer:
 
---- question 14 fill here ---
+We ran a pretrained model from Huggingface and the task to be performed was a simple binary classification; hence the performance of the model was already excellent from the very beginning. We run the transformer model "prajjwal1/bert-tiny", with the following hyperparameters:  batch_size=16, epochs=2, precision=32, lr=2e-5, optimizer= adamw. The results from the experiment are shown in the following images. [Validation precision of the model](figures/wandb.png) [Validation accuracy of the model](figures/wandb.png)[confusion matrix of the model](figures/wandb.png).
 
 ### Question 15
 
