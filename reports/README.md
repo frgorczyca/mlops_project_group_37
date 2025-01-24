@@ -85,11 +85,11 @@ will check the repositories and the code to verify your answers.
 * [X] Create a trigger workflow for automatically building your docker images (M21)
 * [X] Get your model training in GCP using either the Engine or Vertex AI (M21)
 * [X] Create a FastAPI application that can do inference using your model (M22)
-* [ ] Deploy your model in GCP using either Functions or Run as the backend (M23)
+* [X] Deploy your model in GCP using either Functions or Run as the backend (M23)
 * [X] Write API tests for your application and setup continues integration for these (M24)
 * [X] Load test your application (M24)
 * [X] Create a more specialized ML-deployment API using either ONNX or BentoML, or both (M25)
-* [ ] Create a frontend for your API (M26)
+* [X] Create a frontend for your API (M26)
 
 ### Week 3
 
@@ -324,7 +324,7 @@ Example workflow for integration tests can be found [here](https://github.com/fr
 >
 > Answer:
 
-We used hydra for managing the configuration of our model training. This consists of a primary config file, that holds top-level config such as the global seed, and further points to subconfigs for our data, model, optimizer and training hyperparameters. When a run is executed, hydra automatically logs the used config, but it is also saved in the W&B artifact metadata so it can be retrieved when the model is downloaded from the registry.
+We used hydra for managing the configuration of our model training. This consists of a primary config file, that holds top-level config such as the global seed, and further points to subconfigs for our data, model, optimizer and training hyperparamters, encompassing all variables of our experiment. To run an experiment, execute either python src/text_detect/train.py or run invoke train from the root.
 
 ### Question 13
 
@@ -339,7 +339,7 @@ We used hydra for managing the configuration of our model training. This consist
 >
 > Answer:
 
---- question 13 fill here ---
+As mentioned in the previous question (12), we made use of config files. When a run is executed, hydra automatically logs the used config, but it is also saved in the W&B artifact metadata so it can be retrieved when the model is downloaded from the registry. This ensures that each saved model contains all the information needed to reproduce its experiment. To reproduce an experiment, the model simply needs to be downloaded locally from the W&B registry, and its config can be retrieved as part of its run config metadata. The metadata can also be viewed on the W&B teams or registry.
 
 ### Question 14
 
@@ -356,7 +356,9 @@ We used hydra for managing the configuration of our model training. This consist
 >
 > Answer:
 
-We ran a pretrained model from Huggingface and the task to be performed was a simple binary classification; hence the performance of the model was already excellent from the very beginning. We run the transformer model "prajjwal1/bert-tiny", with the following hyperparameters:  batch_size=16, epochs=2, precision=32, lr=2e-5, optimizer= adamw. The results from the experiment are shown in the following images. [Validation precision of the model](figures/wandb.png) [Validation accuracy of the model](figures/wandb.png)[confusion matrix of the model](figures/wandb.png).
+![Train and validation metrics](figures/wandb1.png)
+In the image, we can see 6 tracked metrics, although 10 charts are present, but limited by the page. Both loss, accuracy and precision are tracked. For training, the metrics are tracked both for each training step, and on each epoch, but for validation they are tracked only per epoch. These metrics provide crucial insights into model performance and training dynamics. Loss helps monitor how well the model is learning by measuring prediction errors, with lower values indicating better fit. Accuracy shows the overall correctness of predictions, while precision focuses on the reliability of positive predictions by measuring the ratio of true positives to all positive predictions. Tracking metrics at both step and epoch levels allows us to observe both fine-grained learning behavior and overall trends. Training metrics reveal how the model learns from the training data, while validation metrics indicate generalization ability on unseen data.
+Additional metrics such as recall (measuring the model's ability to find all positive cases), F1 score (balancing precision and recall), and AUROC (measuring discrimination ability across different thresholds) could be enabled via the config, however they quickly clutter the overview of charts. Focusing on key metrics helps maintain clarity and efficiency in the analysis process.
 
 ### Question 15
 
@@ -487,8 +489,6 @@ Yes, we have managed to run a custom job through Vertex AI to run training. This
 > Answer:
 
 We wrote two API's, one using FastAPI and the other using BentoML. However both in essence use the same inference logic and structure. Both API's on startup fetch the production-tagged model from our W&B registry, and initialize it using the config it was trained on. The startup takes a few seconds, but is relatively quickly ready for clients. The clients can then send an essay in the form of a text string, which is then tokenized and fed into the model, and returns either the class "Human" or "AI". The BentoML API specifically supports adaptive batching. Both API's support logging to asses issues.
-
-
 --- question 23 fill here ---
 
 ### Question 24
