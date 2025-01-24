@@ -495,7 +495,6 @@ However, we were unable to use GPU resources, and were forced to use CPU, which 
 > Answer:
 
 We wrote two API's, one using FastAPI and the other using BentoML. However both in essence use the same inference logic and structure. Both API's on startup fetch the production-tagged model from our W&B registry, and initialize it using the config it was trained on. The startup takes a few seconds, but is relatively quickly ready for clients. The clients can then send an essay in the form of a text string, which is then tokenized and fed into the model, and returns either the class "Human" or "AI". The BentoML API specifically supports adaptive batching. Both API's support logging to asses issues.
---- question 23 fill here ---
 
 ### Question 24
 
@@ -511,7 +510,8 @@ We wrote two API's, one using FastAPI and the other using BentoML. However both 
 >
 > Answer:
 
---- question 24 fill here ---
+We have attempted to deploy backend but bentoml did not manage to produce docker image that we were able to run in Cloud Run. This was likely an issue with bento not being able to recognize our python package, meaning it could not find an entry point to the API.
+This was crucial problem for our infrastructure meaning we couldn't impelement some of the further modules (like monitoring).
 
 ### Question 25
 
@@ -526,7 +526,11 @@ We wrote two API's, one using FastAPI and the other using BentoML. However both 
 >
 > Answer:
 
-We have added both unit and performance tests for our API. Unit tests use mock up client to check correctness of the response format of our client.
+We have added both unit and performance tests for our API. We have only tested against FAST Api. Unit tests use mock up client to check correctness of the response format of our client e.g. are all required fields present. For load testing, we have used Locust against locally running FAST Api app. Results can be found below for both health check and our main endpoints `/predict`
+![Pipeline](figures/performance_tests.png)
+
+</br>
+We have not implemented performance tests in our pipeline due to the lack of time. They would however be useful in making sure that our API is ready for real-life traffic.
 
 ### Question 26
 
