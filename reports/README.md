@@ -229,7 +229,7 @@ We have used ruff both as pre-commit and as a check in the Github Actions workfl
 We have implemented 3 kind of tests: unit tests, performance tests and integration tests.
 The unit tests tests the data and the model - the the data tests tests all the functions and class methods inside our data.py and the model test tests most of our function, excluding the ones using W&B.
 Our performance test had a test using locust for load testing and an accuracy test making sure our model has an accuray above 80%.
-Finally, the integration test is used to validate our API. 
+Finally, the integration test is used to validate our API.
 
 
 ### Question 8
@@ -245,10 +245,10 @@ Finally, the integration test is used to validate our API.
 >
 > Answer:
 
-Next, an overview of the code coverage of tests performed is shown: 
+Next, an overview of the code coverage of tests performed is shown:
 - For the integration tests, specifically  the API tests: 52% average coverage with 43% coverage of the wandb_functions.py, 42% of model.py, and 70% of the app.py file.
 - As for the unit tests, the data.py unit tests achieved 82% coverage, whereas the model unit tests achieved only 52% coverage of the model file. This is due to the fact that any functions of the model.py code which required external api calling(mostly wandb) were omitted.
-- Even if the tests achieved a 100% code coverage, we would not trust it to run completely bug-free. Coverage is just a representation of the number of lines of code run when the tests are executed. Nevertheless, even though thse lines are run, there might be scenarios which trigger certain parts of the tested codes, and in combination with each other, do not behave as expected. 
+- Even if the tests achieved a 100% code coverage, we would not trust it to run completely bug-free. Coverage is just a representation of the number of lines of code run when the tests are executed. Nevertheless, even though thse lines are run, there might be scenarios which trigger certain parts of the tested codes, and in combination with each other, do not behave as expected.
 
 
 ### Question 9
